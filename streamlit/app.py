@@ -70,7 +70,7 @@ sh_ratio = sh/len(df_hosts)*100 if len(df_hosts)>0 else 0
 occ = (df_f["number_of_reviews"]>=10).mean()*100 if total_listings>0 else 0
 pq = (df_f["price"]/df_f["review_scores_rating"].replace(0,pd.NA)).mean() if total_listings>0 else 0
 moon_r = df_moon[df_moon["is_full_moon_review"]==True].shape[0]
-moon_pct = moon_r/len(df_moon)*100 if len(df_moon)>0 else 0
+moon_pct = moon_r/total_reviews*100 if total_reviews>0 else 0
 minn = df_f["minimum_nights"].mean() if total_listings>0 else 0
 r1.metric("Superhosts", f"{sh_ratio:.1f}%")
 r2.metric("Taux occupation", f"{occ:.1f}%")
