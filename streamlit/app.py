@@ -62,6 +62,7 @@ section[data-testid="stSidebar"] h3 {
 .stTabs [data-baseweb="tab-list"] {
     gap: 8px;
     background: transparent;
+    margin-top: 1.5rem;
 }
 .stTabs [data-baseweb="tab"] {
     background: #141414;
@@ -102,7 +103,7 @@ section[data-testid="stSidebar"] h3 {
     font-weight: 800 !important;
 }
 .block-container {
-    padding-top: 1.5rem;
+    padding-top: 4rem;
     padding-bottom: 3rem;
     max-width: 1400px;
 }
