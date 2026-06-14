@@ -240,3 +240,9 @@ fix_schema.py
 # Fichiers internes (documentation E1 non destinee au repo public)
 design_guidelines.json
 memory/
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
