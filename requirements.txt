@@ -1,16 +1,17 @@
-# Core dbt
-dbt-core==1.8.0
-dbt-duckdb==1.8.0
+# Core dbt - compatible Python 3.10 a 3.13
+dbt-core>=1.9.0,<2.0.0
+dbt-duckdb>=1.9.0,<2.0.0
 
-# DuckDB
-duckdb==0.10.3
+# DuckDB - version avec wheels pour Python 3.13
+duckdb>=1.1.0,<2.0.0
 
 # Streamlit
-streamlit==1.35.0
+streamlit>=1.35.0
 
 # Visualisation
-plotly==5.22.0
-pandas==2.2.2
+plotly>=5.22.0
+pandas>=2.2.3
+numpy>=2.1.0; python_version >= "3.13"
 
 # Utilities
-python-dotenv==1.0.1
+python-dotenv>=1.0.0
