@@ -221,3 +221,11 @@ data/listings.csv
 data/reviews.csv
 data/airbnb.duckdb
 data/*.duckdb
+
+# DuckDB - base de donnees locale (regenerable via dbt run)
+*.duckdb
+*.duckdb.wal
+
+# Fichiers temporaires et residus
+readme_out.txt
+fix_schema.py
