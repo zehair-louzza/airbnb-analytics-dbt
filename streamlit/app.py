@@ -15,7 +15,7 @@ import os
 # ============================================================
 st.set_page_config(
     page_title="Airbnb Analytics - Berlin",
-    page_icon="🏙️",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -426,7 +426,7 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 # ============================================================
 # SIDEBAR - FILTRES
 # ============================================================
-st.sidebar.markdown("### 🎛️ Filtres")
+st.sidebar.markdown("### Filtres")
 st.sidebar.markdown("---")
 
 room_types = sorted(df_listings["room_type"].dropna().unique().tolist())
@@ -444,7 +444,7 @@ selected_price = st.sidebar.slider(
     step=5.0,
 )
 
-full_moon_only = st.sidebar.checkbox("🌕 Pleine lune uniquement", value=False)
+full_moon_only = st.sidebar.checkbox("Pleine lune uniquement", value=False)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(
@@ -479,7 +479,7 @@ df_moon_f = df_moon_f[df_moon_f["listing_id"].isin(df_f["listing_id"])]
 # TABS
 # ============================================================
 tab_home, tab_overview, tab_prices, tab_reviews, tab_moon = st.tabs(
-    ["🏠 Accueil", "📊 Vue d'ensemble", "💶 Analyse des prix", "💬 Avis & Sentiment", "🌕 Pleine Lune"]
+    ["Accueil", "Vue d'ensemble", "Analyse des prix", "Avis & Sentiment", "Pleine Lune"]
 )
 
 # ------------------------------------------------------------
@@ -545,7 +545,7 @@ comportementales lunaires.
     st.markdown("---")
     st.markdown(
         "<div style='text-align:center;color:#7A6354;font-size:0.85rem;padding:1rem 0;'>"
-        "👉 Naviguez via les onglets ci-dessus pour explorer les analyses détaillées."
+        "Naviguez via les onglets ci-dessus pour explorer les analyses détaillées."
         "</div>",
         unsafe_allow_html=True,
     )
@@ -554,7 +554,7 @@ comportementales lunaires.
 # TAB 2 - VUE D'ENSEMBLE
 # ------------------------------------------------------------
 with tab_overview:
-    st.markdown("## 📊 Vue d'ensemble du marché")
+    st.markdown("## Vue d'ensemble du marché")
     st.markdown(
         f"<div style='color:#7A6354;margin-bottom:1.5rem'>"
         f"Sélection actuelle : <strong style='color:#E85D3C'>{len(df_f):,}</strong> logements"
@@ -618,7 +618,7 @@ with tab_overview:
 # TAB 3 - ANALYSE DES PRIX
 # ------------------------------------------------------------
 with tab_prices:
-    st.markdown("## 💶 Analyse des prix")
+    st.markdown("## Analyse des prix")
 
     if len(df_f) > 0:
         c1, c2 = st.columns(2)
@@ -681,7 +681,7 @@ with tab_prices:
 # TAB 4 - AVIS & SENTIMENT
 # ------------------------------------------------------------
 with tab_reviews:
-    st.markdown("## 💬 Avis & Sentiment")
+    st.markdown("## Avis & Sentiment")
 
     if len(df_rev_f) > 0:
         # KPIs sentiment
@@ -762,7 +762,7 @@ with tab_reviews:
 # TAB 5 - PLEINE LUNE
 # ------------------------------------------------------------
 with tab_moon:
-    st.markdown("## 🌕 Analyse Pleine Lune")
+    st.markdown("## Analyse Pleine Lune")
     st.markdown(
         "<div style='color:#7A6354;margin-bottom:1rem;font-size:0.95rem'>"
         "Croisement des avis avec les dates de pleine lune (J ou J+1). "
