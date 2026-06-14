@@ -38,7 +38,7 @@ import duckdb
 #   https://github.com/<USER>/<REPO>/releases/download/<TAG>/<FILENAME>
 REVIEWS_DOWNLOAD_URL = os.environ.get(
     "REVIEWS_URL",
-    "https://github.com/zehair-louzza/airbnb-analytics-dbt-new/releases/download/v1.0-data/reviews.csv",
+    "https://github.com/zehair-louzza/airbnb-analytics-dbt/releases/download/v1.0-data/reviews.csv",
 )
 
 # Configuration du logging

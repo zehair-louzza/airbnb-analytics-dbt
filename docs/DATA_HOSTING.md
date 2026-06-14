@@ -15,7 +15,7 @@ data/raw/reviews.csv           ← TELECHARGE depuis GitHub Releases
 
 ## Etape 1 — Uploader reviews.csv sur GitHub Releases (a faire UNE seule fois)
 
-1. Ouvrez votre repo : `https://github.com/<USER>/airbnb-analytics-dbt-new`
+1. Ouvrez votre repo : `https://github.com/<USER>/airbnb-analytics-dbt`
 2. Cliquez sur **"Releases"** dans la barre laterale droite (ou allez sur `/releases`)
 3. Cliquez sur **"Create a new release"** (ou **"Draft a new release"**)
 4. Configurez :
@@ -32,7 +32,7 @@ Sur la page de la release, faites un **clic droit > Copier l'adresse du lien** s
 
 L'URL aura cette forme :
 ```
-https://github.com/<USER>/airbnb-analytics-dbt-new/releases/download/v1.0-data/reviews.csv
+https://github.com/<USER>/airbnb-analytics-dbt/releases/download/v1.0-data/reviews.csv
 ```
 
 ## Etape 3 — Configurer le script
@@ -41,18 +41,18 @@ Trois facons (par ordre de priorite) :
 
 ### Option A : Modifier la constante dans `scripts/load_data.py`
 ```python
-REVIEWS_DOWNLOAD_URL = "https://github.com/<USER>/airbnb-analytics-dbt-new/releases/download/v1.0-data/reviews.csv"
+REVIEWS_DOWNLOAD_URL = "https://github.com/<USER>/airbnb-analytics-dbt/releases/download/v1.0-data/reviews.csv"
 ```
 
 ### Option B : Variable d environnement
 ```bash
-export REVIEWS_URL="https://github.com/<USER>/airbnb-analytics-dbt-new/releases/download/v1.0-data/reviews.csv"
+export REVIEWS_URL="https://github.com/<USER>/airbnb-analytics-dbt/releases/download/v1.0-data/reviews.csv"
 python scripts/load_data.py
 ```
 
 ### Option C : Argument CLI
 ```bash
-python scripts/load_data.py --reviews-url "https://github.com/<USER>/airbnb-analytics-dbt-new/releases/download/v1.0-data/reviews.csv"
+python scripts/load_data.py --reviews-url "https://github.com/<USER>/airbnb-analytics-dbt/releases/download/v1.0-data/reviews.csv"
 ```
 
 ## Etape 4 — Lancer le pipeline
