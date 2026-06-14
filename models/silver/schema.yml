@@ -1,0 +1,72 @@
+version: 2
+
+models:
+  - name: silver_hosts
+    description: "Hosts transformes - couche Silver"
+    columns:
+      - name: host_id
+        description: "Identifiant unique de l hote"
+        tests:
+          - not_null
+          - unique
+      - name: host_name
+        description: "Nom de l hote"
+        tests:
+          - not_null
+      - name: is_superhost
+        description: "Indicateur superhost"
+
+  - name: silver_listings
+    description: "Listings transformes - couche Silver"
+    columns:
+      - name: listing_id
+        description: "Identifiant unique du listing"
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        description: "Reference vers l hote"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_hosts')
+              field: host_id
+      - name: room_type
+        description: "Type de chambre"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Entire home/apt', 'Private room', 'Shared room', 'Hotel room']
+      - name: price_clean
+        description: "Prix nettoye en float"
+      - name: minimum_nights
+        description: "Minimum nuits"
+        tests:
+          - not_null
+
+  - name: silver_reviews
+    description: "Avis transformes - couche Silver"
+    columns:
+      - name: listing_id
+        description: "Reference vers le listing"
+        tests:
+          - not_null
+      - name: review_date
+        description: "Date de l avis"
+        tests:
+          - not_null
+      - name: reviewer_id
+        description: "Identifiant du reviewer (peut etre null)"
+      - name: review_text
+        description: "Texte de l avis"
+        tests:
+          - not_null
+
+  - name: silver_full_moon_dates
+    description: "Dates de pleine lune avec J+1"
+    columns:
+      - name: full_moon_date
+        description: "Date de la pleine lune"
+        tests:
+          - not_null
+          - unique
