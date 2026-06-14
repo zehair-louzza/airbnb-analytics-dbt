@@ -26,14 +26,19 @@ DB_PATH = os.path.join(
     "airbnb.duckdb",
 )
 
-# Couleurs du theme (alignees sur design_guidelines.json)
-COLOR_PRIMARY = "#FF1F53"
-COLOR_ACCENT = "#FFD700"
-COLOR_BG = "#0A0A0A"
-COLOR_SURFACE = "#141414"
-COLOR_TEXT = "#FFFFFF"
-COLOR_MUTED = "#A1A1AA"
-PLOTLY_TEMPLATE = "plotly_dark"
+# Palette chaleureuse (terracotta / safran / creme)
+COLOR_PRIMARY = "#E85D3C"      # Terracotta
+COLOR_ACCENT = "#F4A93B"       # Safran / miel
+COLOR_SECONDARY = "#A0522D"    # Brun chaud
+COLOR_BG = "#FBF5EC"           # Creme / parchemin
+COLOR_SURFACE = "#FFFFFF"      # Cartes blanches
+COLOR_SURFACE_ALT = "#FFF3E4"  # Surface alternative cremeuse
+COLOR_TEXT = "#2B1810"         # Brun fonce
+COLOR_MUTED = "#7A6354"        # Taupe chaud
+COLOR_BORDER = "rgba(139, 69, 19, 0.12)"
+PLOTLY_TEMPLATE = "plotly_white"
+# Palette Plotly chaude pour les categories
+WARM_PALETTE = ["#E85D3C", "#F4A93B", "#A0522D", "#D4A373", "#8B4513"]
 
 # ============================================================
 # CSS GLOBAL
@@ -44,53 +49,75 @@ GLOBAL_CSS = """
 
 html, body, [class*="css"] {
     font-family: 'DM Sans', sans-serif !important;
-    color: #FFFFFF;
+    color: #2B1810;
+}
+.stApp {
+    background: linear-gradient(180deg, #FBF5EC 0%, #FCEFE0 100%);
 }
 h1, h2, h3, h4 {
     font-family: 'Bricolage Grotesque', sans-serif !important;
     letter-spacing: -0.02em;
+    color: #2B1810 !important;
 }
 section[data-testid="stSidebar"] {
-    background: #0A0A0A !important;
-    border-right: 1px solid rgba(255,255,255,0.05);
+    background: #FFF3E4 !important;
+    border-right: 1px solid rgba(139, 69, 19, 0.12);
+}
+section[data-testid="stSidebar"] * {
+    color: #2B1810 !important;
 }
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3 {
-    color: #FF1F53 !important;
+    color: #E85D3C !important;
 }
-.stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
-    background: transparent;
-    margin-top: 1.5rem;
-}
-.stTabs [data-baseweb="tab"] {
-    background: #141414;
-    color: #A1A1AA;
-    border-radius: 10px;
-    padding: 10px 20px;
-    border: 1px solid rgba(255,255,255,0.06);
-    font-family: 'DM Sans', sans-serif;
+section[data-testid="stSidebar"] label {
+    color: #7A6354 !important;
     font-weight: 600;
 }
-.stTabs [aria-selected="true"] {
-    background: #FF1F53 !important;
-    color: #FFFFFF !important;
-    border-color: #FF1F53 !important;
+.stTabs [data-baseweb="tab-list"] {
+    gap: 10px;
+    background: transparent;
+    margin-top: 1.5rem;
+    border-bottom: none !important;
 }
+.stTabs [data-baseweb="tab"] {
+    background: #FFFFFF;
+    color: #7A6354;
+    border-radius: 12px;
+    padding: 10px 22px;
+    border: 1px solid rgba(139, 69, 19, 0.12);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    transition: all .25s ease;
+}
+.stTabs [data-baseweb="tab"]:hover {
+    background: #FFF3E4;
+    color: #E85D3C;
+    border-color: rgba(232, 93, 60, 0.3);
+}
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, #E85D3C 0%, #F4A93B 100%) !important;
+    color: #FFFFFF !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 12px rgba(232, 93, 60, 0.25);
+}
+.stTabs [aria-selected="true"] * { color: #FFFFFF !important; }
 [data-testid="stMetric"] {
-    background: #141414;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 18px;
-    transition: transform .25s ease, border-color .25s ease;
+    background: #FFFFFF;
+    border: 1px solid rgba(139, 69, 19, 0.10);
+    border-radius: 16px;
+    padding: 20px;
+    transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    box-shadow: 0 2px 6px rgba(139, 69, 19, 0.04);
 }
 [data-testid="stMetric"]:hover {
-    transform: translateY(-3px);
-    border-color: rgba(255, 31, 83, 0.4);
+    transform: translateY(-4px);
+    border-color: rgba(232, 93, 60, 0.35);
+    box-shadow: 0 12px 24px rgba(232, 93, 60, 0.12);
 }
 [data-testid="stMetricLabel"] {
-    color: #A1A1AA !important;
+    color: #7A6354 !important;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-size: 0.78rem !important;
@@ -98,9 +125,12 @@ section[data-testid="stSidebar"] h3 {
 }
 [data-testid="stMetricValue"] {
     font-family: 'Bricolage Grotesque', sans-serif !important;
-    color: #FFFFFF !important;
+    color: #2B1810 !important;
     font-size: 1.9rem !important;
     font-weight: 800 !important;
+}
+[data-testid="stMetricValue"] > div {
+    color: #E85D3C !important;
 }
 .block-container {
     padding-top: 4rem;
@@ -108,24 +138,46 @@ section[data-testid="stSidebar"] h3 {
     max-width: 1400px;
 }
 hr {
-    border-color: rgba(255,255,255,0.06);
+    border-color: rgba(139, 69, 19, 0.12);
 }
 .stButton > button {
-    background: #FF1F53;
+    background: linear-gradient(135deg, #E85D3C 0%, #F4A93B 100%);
     color: white;
     border: none;
     border-radius: 999px;
-    padding: 0.6rem 1.4rem;
+    padding: 0.65rem 1.5rem;
     font-family: 'DM Sans', sans-serif;
     font-weight: 600;
     letter-spacing: 0.02em;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(232, 93, 60, 0.25);
 }
 .stButton > button:hover {
-    background: #E01747;
     transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(255, 31, 83, 0.3);
+    box-shadow: 0 8px 20px rgba(232, 93, 60, 0.35);
     color: white;
+}
+/* DataFrame styling */
+[data-testid="stDataFrame"] {
+    background: #FFFFFF;
+    border: 1px solid rgba(139, 69, 19, 0.10);
+    border-radius: 12px;
+    overflow: hidden;
+}
+/* Markdown text general */
+.stMarkdown, .stMarkdown p, .stMarkdown li {
+    color: #2B1810;
+}
+.stMarkdown strong { color: #2B1810; }
+/* Slider thumb */
+[data-testid="stSlider"] [role="slider"] {
+    background: #E85D3C !important;
+    border-color: #E85D3C !important;
+}
+/* Multi-select tags */
+[data-baseweb="tag"] {
+    background: #E85D3C !important;
+    color: white !important;
 }
 </style>
 """
@@ -156,12 +208,12 @@ HERO_HTML = """
     justify-content: center;
     padding: 4rem;
     background:
-      linear-gradient(135deg, rgba(10,10,10,0.92), rgba(20,20,20,0.78)),
+      linear-gradient(135deg, rgba(232, 93, 60, 0.92) 0%, rgba(244, 169, 59, 0.85) 50%, rgba(160, 82, 45, 0.78) 100%),
       url('https://images.unsplash.com/photo-1560930950-5cc20e80e392?crop=entropy&cs=srgb&fm=jpg') center/cover;
     font-family: 'DM Sans', sans-serif;
     color: #FFFFFF;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.45);
-    border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 20px 50px rgba(232, 93, 60, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     margin-bottom: 2.5rem;
     animation: heroFadeIn .9s ease-out;
 }
@@ -171,12 +223,13 @@ HERO_HTML = """
 }
 .e1-hero-badge {
     display: inline-block;
-    background: rgba(255, 31, 83, 0.15);
-    border: 1px solid rgba(255, 31, 83, 0.45);
-    color: #FF1F53;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #FFFFFF;
     padding: 0.5rem 1rem;
     border-radius: 999px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.8rem;
     margin-bottom: 1.5rem;
     text-transform: uppercase;
@@ -190,19 +243,24 @@ HERO_HTML = """
     line-height: 1.05;
     margin: 0 0 1.5rem 0;
     letter-spacing: -0.03em;
+    color: #FFFFFF;
+    text-shadow: 0 2px 24px rgba(43, 24, 16, 0.25);
 }
-.e1-hero-title span { color: #FF1F53; }
+.e1-hero-title span {
+    color: #FFF3E4;
+    font-style: italic;
+}
 .e1-hero-subtitle {
     font-size: 1.1rem;
-    color: #D4D4D8;
-    max-width: 620px;
+    color: #FFF3E4;
+    max-width: 640px;
     line-height: 1.6;
     margin: 0 0 2rem 0;
 }
 .e1-hero-author {
     font-size: 0.85rem;
-    color: #A1A1AA;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255, 255, 255, 0.85);
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
     padding-top: 1.2rem;
     margin-top: 2rem;
 }
@@ -214,18 +272,20 @@ HERO_HTML = """
     flex-wrap: wrap;
 }
 .e1-tech-badge {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 0.3rem 0.85rem;
-    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.35rem 0.9rem;
+    border-radius: 8px;
     font-size: 0.78rem;
-    color: #E4E4E7;
+    color: #FFFFFF;
+    font-weight: 600;
     transition: all .25s ease;
 }
 .e1-tech-badge:hover {
-    background: rgba(255, 31, 83, 0.15);
-    border-color: rgba(255, 31, 83, 0.5);
-    color: #FF1F53;
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
 }
 </style>
 """
@@ -235,32 +295,33 @@ PIPELINE_HTML = """
   <div class="e1-pipeline-header">Architecture Medallion — Bronze → Silver → Gold</div>
   <div class="e1-pipeline-container">
     <div class="e1-pipeline-node" data-tier="bronze">
-      <div class="e1-pipeline-title" style="color: #CD7F32">Bronze</div>
+      <div class="e1-pipeline-title" style="color: #B8702E">Bronze</div>
       <div class="e1-pipeline-desc">Ingestion brute<br>raw_listings, raw_hosts,<br>raw_reviews</div>
     </div>
     <div class="e1-pipeline-arrow"></div>
     <div class="e1-pipeline-node" data-tier="silver">
-      <div class="e1-pipeline-title" style="color: #C0C0C0">Silver</div>
+      <div class="e1-pipeline-title" style="color: #A0522D">Silver</div>
       <div class="e1-pipeline-desc">Nettoyage & typage<br>prix, dates,<br>sentiment</div>
     </div>
     <div class="e1-pipeline-arrow"></div>
     <div class="e1-pipeline-node" data-tier="gold">
-      <div class="e1-pipeline-title" style="color: #FFD700">Gold</div>
+      <div class="e1-pipeline-title" style="color: #D4922A">Gold</div>
       <div class="e1-pipeline-desc">Agrégations métier<br>dim_listings, fact_reviews,<br>full_moon_reviews</div>
     </div>
   </div>
 </div>
 <style>
 .e1-pipeline-wrapper {
-    background: #0A0A0A;
+    background: linear-gradient(135deg, #FFF8EE 0%, #FFEFD9 100%);
     padding: 2.5rem;
     border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid rgba(139, 69, 19, 0.12);
     margin: 1.5rem 0 2rem 0;
+    box-shadow: 0 4px 16px rgba(139, 69, 19, 0.06);
 }
 .e1-pipeline-header {
     font-family: 'Bricolage Grotesque', sans-serif;
-    color: #FFFFFF;
+    color: #2B1810;
     font-size: 1.4rem;
     font-weight: 700;
     margin-bottom: 2rem;
@@ -276,8 +337,8 @@ PIPELINE_HTML = """
     padding-bottom: .5rem;
 }
 .e1-pipeline-node {
-    background: #141414;
-    border: 1px solid rgba(255,255,255,0.08);
+    background: #FFFFFF;
+    border: 1px solid rgba(139, 69, 19, 0.10);
     border-radius: 14px;
     padding: 1.5rem;
     min-width: 200px;
@@ -285,19 +346,19 @@ PIPELINE_HTML = """
     position: relative;
     z-index: 2;
     transition: transform .3s ease, box-shadow .3s ease;
+    box-shadow: 0 2px 8px rgba(139, 69, 19, 0.05);
 }
 .e1-pipeline-node:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    box-shadow: 0 12px 28px rgba(232, 93, 60, 0.15);
 }
-.e1-pipeline-node[data-tier="bronze"] { border-top: 4px solid #CD7F32; }
-.e1-pipeline-node[data-tier="silver"] { border-top: 4px solid #C0C0C0; }
-.e1-pipeline-node[data-tier="gold"]   { border-top: 4px solid #FFD700; }
+.e1-pipeline-node[data-tier="bronze"] { border-top: 4px solid #B8702E; }
+.e1-pipeline-node[data-tier="silver"] { border-top: 4px solid #A0522D; }
+.e1-pipeline-node[data-tier="gold"]   { border-top: 4px solid #D4922A; }
 .e1-pipeline-title {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 1.3rem;
     font-weight: 800;
-    color: #FFFFFF;
     margin-bottom: 0.6rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -305,13 +366,13 @@ PIPELINE_HTML = """
 .e1-pipeline-desc {
     font-family: 'DM Sans', sans-serif;
     font-size: 0.85rem;
-    color: #A1A1AA;
+    color: #7A6354;
     line-height: 1.5;
 }
 .e1-pipeline-arrow {
     height: 2px;
     flex-grow: 1;
-    background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,31,83,0.6) 50%, rgba(255,255,255,0.05) 100%);
+    background: linear-gradient(90deg, rgba(139, 69, 19, 0.1) 0%, rgba(232, 93, 60, 0.7) 50%, rgba(139, 69, 19, 0.1) 100%);
     position: relative;
     min-width: 40px;
 }
@@ -321,7 +382,7 @@ PIPELINE_HTML = """
     right: -2px;
     top: 50%;
     transform: translateY(-50%) rotate(-45deg);
-    border: solid #FF1F53;
+    border: solid #E85D3C;
     border-width: 0 2px 2px 0;
     display: inline-block;
     padding: 5px;
@@ -387,8 +448,8 @@ full_moon_only = st.sidebar.checkbox("🌕 Pleine lune uniquement", value=False)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown(
-    "<div style='color:#A1A1AA;font-size:0.78rem;line-height:1.5;'>"
-    "<strong style='color:#FF1F53'>Auteur</strong><br>"
+    "<div style='color:#7A6354;font-size:0.78rem;line-height:1.5;'>"
+    "<strong style='color:#E85D3C'>Auteur</strong><br>"
     "Zehair LOUZZA<br>"
     "MBA ESG Big Data & IA<br>"
     "Promotion 2026"
@@ -483,7 +544,7 @@ comportementales lunaires.
 
     st.markdown("---")
     st.markdown(
-        "<div style='text-align:center;color:#71717A;font-size:0.85rem;padding:1rem 0;'>"
+        "<div style='text-align:center;color:#7A6354;font-size:0.85rem;padding:1rem 0;'>"
         "👉 Naviguez via les onglets ci-dessus pour explorer les analyses détaillées."
         "</div>",
         unsafe_allow_html=True,
@@ -495,8 +556,8 @@ comportementales lunaires.
 with tab_overview:
     st.markdown("## 📊 Vue d'ensemble du marché")
     st.markdown(
-        f"<div style='color:#A1A1AA;margin-bottom:1.5rem'>"
-        f"Sélection actuelle : <strong style='color:#FF1F53'>{len(df_f):,}</strong> logements"
+        f"<div style='color:#7A6354;margin-bottom:1.5rem'>"
+        f"Sélection actuelle : <strong style='color:#E85D3C'>{len(df_f):,}</strong> logements"
         f"</div>",
         unsafe_allow_html=True,
     )
@@ -512,7 +573,7 @@ with tab_overview:
                 y="count",
                 title="Répartition par type de logement",
                 color="room_type",
-                color_discrete_sequence=["#FF1F53", "#FFD700", "#A1A1AA", "#CD7F32"],
+                color_discrete_sequence=WARM_PALETTE,
                 template=PLOTLY_TEMPLATE,
             )
             fig.update_layout(showlegend=False, height=380)
@@ -523,7 +584,7 @@ with tab_overview:
                 values="count",
                 names="room_type",
                 title="Parts de marché par type",
-                color_discrete_sequence=["#FF1F53", "#FFD700", "#A1A1AA", "#CD7F32"],
+                color_discrete_sequence=WARM_PALETTE,
                 template=PLOTLY_TEMPLATE,
                 hole=0.4,
             )
@@ -569,7 +630,7 @@ with tab_prices:
                 x="price",
                 nbins=50,
                 title=f"Distribution des prix (≤ 500€) — n={len(df_viz):,}",
-                color_discrete_sequence=["#FF1F53"],
+                color_discrete_sequence=["#E85D3C"],
                 template=PLOTLY_TEMPLATE,
             )
             fig.update_layout(height=400, bargap=0.05)
@@ -581,7 +642,7 @@ with tab_prices:
                 y="price",
                 title="Boxplot prix par type de logement (≤ 500€)",
                 color="room_type",
-                color_discrete_sequence=["#FF1F53", "#FFD700", "#A1A1AA", "#CD7F32"],
+                color_discrete_sequence=WARM_PALETTE,
                 template=PLOTLY_TEMPLATE,
             )
             fig2.update_layout(height=400, showlegend=False)
@@ -609,7 +670,7 @@ with tab_prices:
                 title="Prix vs Note (échantillon)",
                 opacity=0.5,
                 template=PLOTLY_TEMPLATE,
-                color_discrete_sequence=["#FF1F53", "#FFD700", "#A1A1AA", "#CD7F32"],
+                color_discrete_sequence=WARM_PALETTE,
             )
             fig3.update_layout(height=420)
             st.plotly_chart(fig3, use_container_width=True)
@@ -650,7 +711,7 @@ with tab_reviews:
                 y="count",
                 title="Volume d'avis par mois (60 derniers)",
                 markers=True,
-                color_discrete_sequence=["#FF1F53"],
+                color_discrete_sequence=["#E85D3C"],
                 template=PLOTLY_TEMPLATE,
             )
             fig.update_layout(xaxis_tickangle=-45, height=400)
@@ -659,7 +720,7 @@ with tab_reviews:
             # Distribution sentiment
             sent_df = sent_counts.reset_index()
             sent_df.columns = ["sentiment", "count"]
-            color_map = {"positive": "#22C55E", "neutral": "#FFD700", "negative": "#FF1F53"}
+            color_map = {"positive": "#5A8F3E", "neutral": "#F4A93B", "negative": "#E85D3C"}
             fig2 = px.pie(
                 sent_df,
                 values="count",
@@ -683,7 +744,7 @@ with tab_reviews:
             y="score_sentiment",
             title="Score moyen de sentiment (−1 = négatif, +1 = positif)",
             color="score_sentiment",
-            color_continuous_scale=[[0, "#FF1F53"], [0.5, "#FFD700"], [1, "#22C55E"]],
+            color_continuous_scale=[[0, "#E85D3C"], [0.5, "#F4A93B"], [1, "#5A8F3E"]],
             template=PLOTLY_TEMPLATE,
         )
         fig3.update_layout(height=400)
@@ -703,7 +764,7 @@ with tab_reviews:
 with tab_moon:
     st.markdown("## 🌕 Analyse Pleine Lune")
     st.markdown(
-        "<div style='color:#A1A1AA;margin-bottom:1rem;font-size:0.95rem'>"
+        "<div style='color:#7A6354;margin-bottom:1rem;font-size:0.95rem'>"
         "Croisement des avis avec les dates de pleine lune (J ou J+1). "
         "Y a-t-il un pattern lunaire dans la satisfaction Airbnb ?"
         "</div>",
@@ -736,7 +797,7 @@ with tab_moon:
                 y="avis",
                 title="Avis pleine lune par type de logement",
                 color="avis",
-                color_continuous_scale="Purples",
+                color_continuous_scale="Oranges",
                 template=PLOTLY_TEMPLATE,
             )
             fig.update_layout(height=380)
@@ -745,7 +806,7 @@ with tab_moon:
             # Sentiment pleine lune
             moon_sent_df = df_for_moon["sentiment"].value_counts().reset_index()
             moon_sent_df.columns = ["sentiment", "count"]
-            color_map = {"positive": "#22C55E", "neutral": "#FFD700", "negative": "#FF1F53"}
+            color_map = {"positive": "#5A8F3E", "neutral": "#F4A93B", "negative": "#E85D3C"}
             fig2 = px.pie(
                 moon_sent_df,
                 values="count",
@@ -770,7 +831,7 @@ with tab_moon:
             x="year",
             y="count",
             title="Évolution des avis pleine lune par année",
-            color_discrete_sequence=["#FFD700"],
+            color_discrete_sequence=["#F4A93B"],
             template=PLOTLY_TEMPLATE,
         )
         fig3.update_layout(height=380)
@@ -792,9 +853,9 @@ with tab_moon:
 # ============================================================
 st.markdown("---")
 st.markdown(
-    "<div style='text-align:center;color:#71717A;font-size:0.8rem;padding:1rem 0;'>"
+    "<div style='text-align:center;color:#7A6354;font-size:0.8rem;padding:1rem 0;'>"
     "Airbnb Analytics Platform &bull; dbt + DuckDB + Streamlit &bull; "
-    "<strong style='color:#FF1F53'>MBA ESG Big Data & IA — Promotion 2026</strong>"
+    "<strong style='color:#E85D3C'>MBA ESG Big Data & IA — Promotion 2026</strong>"
     "</div>",
     unsafe_allow_html=True,
 )
