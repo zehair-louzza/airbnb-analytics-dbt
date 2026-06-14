@@ -1,5 +1,0 @@
-[33m5764129[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m feat: Architecture Medallion complete - dbt run PASS=19, dbt test PASS=34/40, dashboard Streamlit multi-pages operationnel
-[33m8ebe0d3[m fix: schema names, BIGINT types, NVL->COALESCE, add streamlit app and data pipeline
-[33med3efe9[m feat: LOUZZA Zehair visible author banner in Streamlit UI [MBAESG_EVALUATION_MANAGEMENT_OPERATIONNEL_2026]
-[33m23f0138[m docs: README final + fix full_moon_reviews join + seeds pleine lune 2009-2021 [MBAESG_EVALUATION_MANAGEMENT_OPERATIONNEL_2026]
-[33mab8e1ac[m chore: add Makefile to automate full pipeline (ingest/seed/run/test/dashboard)
