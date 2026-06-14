@@ -229,3 +229,5 @@ data/*.duckdb
 # Fichiers temporaires et residus
 readme_out.txt
 fix_schema.py
+
+data/reviews.csv
