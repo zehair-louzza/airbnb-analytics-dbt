@@ -213,13 +213,13 @@ streamlit >= 1.35
 ### Donnees attendues
 
 Placez les CSV bruts dans `data/raw/` :
-- `listings.csv` (colonnes : id, listing_url, name, room_type, minimum_nights, host_id, price, created_at, updated_at)
-- `hosts.csv` (colonnes : id, name, is_superhost, created_at, updated_at)
-- `reviews.csv` **ou** `reviews.csv.gz` (colonnes : listing_id, date, reviewer_name, comments, sentiment)
+- `listings.csv` (colonnes : id, listing_url, name, room_type, minimum_nights, host_id, price, created_at, updated_at) — **versionne dans le repo**
+- `hosts.csv` (colonnes : id, name, is_superhost, created_at, updated_at) — **versionne dans le repo**
+- `reviews.csv` (colonnes : listing_id, date, reviewer_name, comments, sentiment) — **heberge cloud, telecharge auto**
 
 > **Note** : `reviews.csv` non compresse pese ~112 MB et depasse la limite de fichier GitHub (100 MB).
-> Le repo contient donc directement `reviews.csv.gz` (~39 MB). DuckDB lit le `.gz` nativement —
-> aucune decompression manuelle n'est requise.
+> Il est donc heberge sur **GitHub Releases** et **telecharge automatiquement** par `scripts/load_data.py`
+> lors du premier `make ingest`. Voir [`docs/DATA_HOSTING.md`](docs/DATA_HOSTING.md) pour la configuration de l URL.
 
 Le seed `seeds/full_moon_dates.csv` contient les dates de pleine lune (2009-2030).
 

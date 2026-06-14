@@ -36,10 +36,11 @@ setup: install
 	dbt deps
 	@echo "Setup termine."
 
-## ingest: Charge les CSV dans DuckDB
+## ingest: Charge les CSV dans DuckDB (telecharge reviews.csv depuis le cloud si absent)
 ingest:
 	@echo "Ingestion des donnees CSV -> DuckDB..."
-	$(PYTHON) scripts/load_data.py --data-dir $(DATA_DIR) --db-path $(DB_PATH) --verify
+	@echo "Note: si reviews.csv est absent en local, telechargement automatique depuis GitHub Releases"
+	$(PYTHON) scripts/load_data.py --data-dir $(DATA_DIR) --db-path $(DB_PATH)
 	@echo "Ingestion terminee."
 
 ## seed: Charge les seeds dbt

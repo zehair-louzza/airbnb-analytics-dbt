@@ -221,9 +221,10 @@ __marimo__/
 *.duckdb
 *.duckdb.wal
 
-# Donnees brutes : SEULE reviews.csv (112MB) est exclue car > 100MB GitHub
-# La version compressee reviews.csv.gz (~39MB) est trackee a la place
+# Donnees brutes : reviews.csv (~112 MB) est heberge en cloud (GitHub Releases)
+# voir docs/DATA_HOSTING.md - telechargement automatique par scripts/load_data.py
 data/raw/reviews.csv
+data/raw/reviews.csv.gz
 # Ancienne arborescence (data/ a la racine)
 data/hosts.csv
 data/listings.csv
