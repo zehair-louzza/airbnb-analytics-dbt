@@ -41,6 +41,60 @@ PLOTLY_TEMPLATE = "plotly_white"
 WARM_PALETTE = ["#E85D3C", "#F4A93B", "#A0522D", "#D4A373", "#8B4513"]
 
 # ============================================================
+# ICONES SVG PROFESSIONNELS (style Lucide)
+# ============================================================
+def _svg(path_d: str, size: int = 22, color: str = "currentColor", stroke: float = 2) -> str:
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" '
+        f'viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="{stroke}" '
+        f'stroke-linecap="round" stroke-linejoin="round">{path_d}</svg>'
+    )
+
+ICONS = {
+    "home":      '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2h-4a1 1 0 0 1-1-1v-6h-4v6a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2z"/>',
+    "chart":     '<path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/>',
+    "euro":      '<path d="M18 7A8 8 0 1 0 18 17"/><path d="M5 10h10"/><path d="M5 14h10"/>',
+    "chat":      '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+    "moon":      '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+    "filter":    '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
+    "building":  '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22V12h6v10"/><path d="M8 6h.01"/><path d="M12 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>',
+    "star":      '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    "tag":       '<path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+    "users":     '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    "calendar":  '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    "trending":  '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+    "database":  '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>',
+    "layers":    '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+    "sparkle":   '<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/>',
+}
+
+# Logo Airbnb authentique (Belo) - Font Awesome 6 Brands path officiel
+AIRBNB_LOGO_SVG = """
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="34" height="34" fill="#FFFFFF" aria-label="Airbnb">
+<path d="M224 373.12c-25.24-31.67-40.08-59.43-45-83.18-22.55-88 112.61-88 90.06 0-5.45 24.25-20.29 52-45 83.18zm138.15 73.23c-42.06 18.31-83.67-10.88-119.3-50.47 103.9-130.07 46.11-200-18.85-200-54.92 0-85.16 46.51-73.28 100.5 6.93 29.19 25.23 62.39 54.43 99.5-32.53 36.05-60.55 52.69-85.15 54.92-50 7.43-89.11-41.06-71.3-91.09 15.1-39.16 111.72-231.18 115.87-241.56 15.75-30.07 25.56-57.4 59.38-57.4 32.34 0 43.4 25.94 60.37 59.87 36 70.62 89.35 177.48 114.84 239.09 13.17 33.07-1.37 71.29-37.01 86.64zm47-136.12C280.27 35.93 273.13 32 224 32c-45.52 0-64.87 31.67-84.66 72.79C33.18 317.1 22.89 347.19 22 349.81-3.22 419.14 48.74 480 111.63 480c21.71 0 60.61-6.06 112.37-62.4 58.68 63.78 101.26 62.4 112.37 62.4 62.89.05 114.85-60.86 89.61-130.19.02-3.89-16.94-38.9-16.94-39.58z"/>
+</svg>
+""".strip()
+
+def section_header(icon_key: str, title: str, level: int = 2) -> str:
+    """Génère un header de section avec icône SVG inline."""
+    icon_size = 28 if level <= 2 else (24 if level == 3 else 20)
+    box_size = 44 if level <= 2 else (40 if level == 3 else 34)
+    radius = 12 if level <= 2 else 10
+    font_size = "1.8rem" if level <= 2 else ("1.35rem" if level == 3 else "1.1rem")
+    margin = "1.5rem 0 1rem 0" if level <= 2 else "1.5rem 0 0.75rem 0"
+    svg = _svg(ICONS[icon_key], size=icon_size, color=COLOR_PRIMARY, stroke=2.2)
+    tag = f"h{level}"
+    return (
+        f'<div style="display:flex;align-items:center;gap:0.75rem;margin:{margin};">'
+        f'<div style="display:flex;align-items:center;justify-content:center;width:{box_size}px;height:{box_size}px;'
+        f'background:linear-gradient(135deg,#FFE6D5,#FFF3E4);border-radius:{radius}px;'
+        f'border:1px solid rgba(232,93,60,0.15);">{svg}</div>'
+        f'<{tag} style="margin:0;color:#2B1810;font-family:Bricolage Grotesque,sans-serif;'
+        f'font-weight:800;letter-spacing:-0.02em;font-size:{font_size};">{title}</{tag}>'
+        f'</div>'
+    )
+
+# ============================================================
 # CSS GLOBAL
 # ============================================================
 GLOBAL_CSS = """
@@ -85,11 +139,49 @@ section[data-testid="stSidebar"] label {
     background: #FFFFFF;
     color: #7A6354;
     border-radius: 12px;
-    padding: 10px 22px;
+    padding: 10px 22px 10px 44px;
     border: 1px solid rgba(139, 69, 19, 0.12);
     font-family: 'DM Sans', sans-serif;
     font-weight: 600;
     transition: all .25s ease;
+    position: relative;
+}
+.stTabs [data-baseweb="tab"]::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.7;
+    transition: opacity .25s ease, filter .25s ease;
+}
+/* Icones spécifiques par onglet (1=Accueil, 2=Vue, 3=Prix, 4=Avis, 5=Lune) */
+.stTabs [data-baseweb="tab-list"] > div:nth-child(1) [data-baseweb="tab"]::before {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6354' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2h-4a1 1 0 0 1-1-1v-6h-4v6a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2z'/></svg>");
+}
+.stTabs [data-baseweb="tab-list"] > div:nth-child(2) [data-baseweb="tab"]::before {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6354' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><rect x='7' y='12' width='3' height='6'/><rect x='12' y='8' width='3' height='10'/><rect x='17' y='5' width='3' height='13'/></svg>");
+}
+.stTabs [data-baseweb="tab-list"] > div:nth-child(3) [data-baseweb="tab"]::before {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6354' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 7A8 8 0 1 0 18 17'/><path d='M5 10h10'/><path d='M5 14h10'/></svg>");
+}
+.stTabs [data-baseweb="tab-list"] > div:nth-child(4) [data-baseweb="tab"]::before {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6354' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z'/></svg>");
+}
+.stTabs [data-baseweb="tab-list"] > div:nth-child(5) [data-baseweb="tab"]::before {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A6354' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/></svg>");
+}
+.stTabs [aria-selected="true"]::before {
+    filter: brightness(0) invert(1);
+    opacity: 1;
+}
+.stTabs [data-baseweb="tab"]:hover::before {
+    opacity: 1;
 }
 .stTabs [data-baseweb="tab"]:hover {
     background: #FFF3E4;
@@ -182,9 +274,12 @@ hr {
 </style>
 """
 
-HERO_HTML = """
+HERO_HTML = f"""
 <div class="e1-hero-container" data-testid="landing-hero">
-  <div class="e1-hero-badge">Berlin Analytics Engine</div>
+  <div class="e1-hero-top">
+    <div class="e1-hero-logo">{AIRBNB_LOGO_SVG}</div>
+    <div class="e1-hero-badge">Berlin Analytics Engine</div>
+  </div>
   <h1 class="e1-hero-title">Décoder Berlin via<br><span>les annonces Airbnb.</span></h1>
   <p class="e1-hero-subtitle">Une plateforme analytique haute performance qui transforme 17 499 logements et 409 695 avis en insights actionnables : prix, tendances, sentiment et un focus original sur l'effet pleine lune.</p>
   <div class="e1-tech-stack">
@@ -197,7 +292,7 @@ HERO_HTML = """
   <div class="e1-hero-author">Réalisé par <strong>Zehair LOUZZA</strong> &bull; MBA ESG Big Data & IA — Promotion 2026</div>
 </div>
 <style>
-.e1-hero-container {
+.e1-hero-container {{
     position: relative;
     width: 100%;
     min-height: 55vh;
@@ -216,12 +311,31 @@ HERO_HTML = """
     border: 1px solid rgba(255, 255, 255, 0.2);
     margin-bottom: 2.5rem;
     animation: heroFadeIn .9s ease-out;
-}
-@keyframes heroFadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-.e1-hero-badge {
+}}
+@keyframes heroFadeIn {{
+    from {{ opacity: 0; transform: translateY(20px); }}
+    to   {{ opacity: 1; transform: translateY(0); }}
+}}
+.e1-hero-top {{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}}
+.e1-hero-logo {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 16px;
+    transition: transform .3s ease;
+}}
+.e1-hero-logo:hover {{ transform: rotate(-8deg) scale(1.05); }}
+.e1-hero-badge {{
     display: inline-block;
     background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(8px);
@@ -231,12 +345,11 @@ HERO_HTML = """
     border-radius: 999px;
     font-weight: 700;
     font-size: 0.8rem;
-    margin-bottom: 1.5rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     width: fit-content;
-}
-.e1-hero-title {
+}}
+.e1-hero-title {{
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: clamp(2.5rem, 5vw, 4.5rem);
     font-weight: 800;
@@ -245,33 +358,33 @@ HERO_HTML = """
     letter-spacing: -0.03em;
     color: #FFFFFF;
     text-shadow: 0 2px 24px rgba(43, 24, 16, 0.25);
-}
-.e1-hero-title span {
+}}
+.e1-hero-title span {{
     color: #FFF3E4;
     font-style: italic;
-}
-.e1-hero-subtitle {
+}}
+.e1-hero-subtitle {{
     font-size: 1.1rem;
     color: #FFF3E4;
     max-width: 640px;
     line-height: 1.6;
     margin: 0 0 2rem 0;
-}
-.e1-hero-author {
+}}
+.e1-hero-author {{
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.85);
     border-top: 1px solid rgba(255, 255, 255, 0.25);
     padding-top: 1.2rem;
     margin-top: 2rem;
-}
-.e1-hero-author strong { color: #FFFFFF; }
-.e1-tech-stack {
+}}
+.e1-hero-author strong {{ color: #FFFFFF; }}
+.e1-tech-stack {{
     display: flex;
     gap: 0.6rem;
     margin-bottom: 1rem;
     flex-wrap: wrap;
-}
-.e1-tech-badge {
+}}
+.e1-tech-badge {{
     background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -281,12 +394,12 @@ HERO_HTML = """
     color: #FFFFFF;
     font-weight: 600;
     transition: all .25s ease;
-}
-.e1-tech-badge:hover {
+}}
+.e1-tech-badge:hover {{
     background: rgba(255, 255, 255, 0.3);
     border-color: rgba(255, 255, 255, 0.6);
     transform: translateY(-2px);
-}
+}}
 </style>
 """
 
@@ -426,7 +539,15 @@ st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 # ============================================================
 # SIDEBAR - FILTRES
 # ============================================================
-st.sidebar.markdown("### Filtres")
+st.sidebar.markdown(
+    f'<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">'
+    f'<div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;'
+    f'background:linear-gradient(135deg,#E85D3C,#F4A93B);border-radius:10px;color:#fff;">'
+    f'{_svg(ICONS["filter"], size=20, color="#FFFFFF", stroke=2.2)}</div>'
+    f'<div style="font-family:Bricolage Grotesque,sans-serif;font-size:1.25rem;font-weight:800;color:#E85D3C;">Filtres</div>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
 st.sidebar.markdown("---")
 
 room_types = sorted(df_listings["room_type"].dropna().unique().tolist())
@@ -479,7 +600,7 @@ df_moon_f = df_moon_f[df_moon_f["listing_id"].isin(df_f["listing_id"])]
 # TABS
 # ============================================================
 tab_home, tab_overview, tab_prices, tab_reviews, tab_moon = st.tabs(
-    ["Accueil", "Vue d'ensemble", "Analyse des prix", "Avis & Sentiment", "Pleine Lune"]
+    [" Accueil ", " Vue d'ensemble ", " Analyse des prix ", " Avis & Sentiment ", " Pleine Lune "]
 )
 
 # ------------------------------------------------------------
@@ -498,7 +619,7 @@ with tab_home:
     moon_reviews = len(df_moon)
     moon_pct = (moon_reviews / total_reviews_all * 100) if total_reviews_all else 0
 
-    st.markdown("### Indicateurs clés")
+    st.markdown(section_header("sparkle", "Indicateurs clés", level=3), unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Logements actifs", f"{total_listings:,}".replace(",", " "))
     c2.metric("Prix moyen / nuit", f"{avg_price_all:.0f} €")
@@ -516,7 +637,7 @@ with tab_home:
     # Section descriptive
     desc_c1, desc_c2 = st.columns([1.2, 1])
     with desc_c1:
-        st.markdown("### À propos du projet")
+        st.markdown(section_header("layers", "À propos du projet", level=3), unsafe_allow_html=True)
         st.markdown(
             """
 Cette plateforme analytique implémente l'intégralité d'un pipeline data moderne sur les annonces
@@ -532,7 +653,7 @@ comportementales lunaires.
             """
         )
     with desc_c2:
-        st.markdown("### Quatre angles d'analyse")
+        st.markdown(section_header("trending", "Quatre angles d'analyse", level=3), unsafe_allow_html=True)
         st.markdown(
             """
 1. **Vue d'ensemble** — Cartographie globale du marché par type de logement.
@@ -554,7 +675,7 @@ comportementales lunaires.
 # TAB 2 - VUE D'ENSEMBLE
 # ------------------------------------------------------------
 with tab_overview:
-    st.markdown("## Vue d'ensemble du marché")
+    st.markdown(section_header("chart", "Vue d'ensemble du marché", level=2), unsafe_allow_html=True)
     st.markdown(
         f"<div style='color:#7A6354;margin-bottom:1.5rem'>"
         f"Sélection actuelle : <strong style='color:#E85D3C'>{len(df_f):,}</strong> logements"
@@ -592,7 +713,7 @@ with tab_overview:
             st.plotly_chart(fig2, use_container_width=True)
 
         # Stats par type
-        st.markdown("### Statistiques par type de logement")
+        st.markdown(section_header("database", "Statistiques par type de logement", level=4), unsafe_allow_html=True)
         stats = df_f.groupby("room_type").agg(
             logements=("listing_id", "count"),
             prix_moyen=("price", "mean"),
@@ -604,7 +725,7 @@ with tab_overview:
         st.dataframe(stats, use_container_width=True, hide_index=True)
 
         # Top hosts
-        st.markdown("### Top 10 hôtes par nombre d'annonces")
+        st.markdown(section_header("users", "Top 10 hôtes par nombre d'annonces", level=4), unsafe_allow_html=True)
         top_hosts = df_hosts[df_hosts["total_listings"] > 0].nlargest(10, "total_listings")[
             ["host_name", "total_listings", "avg_price", "total_reviews", "is_superhost"]
         ]
@@ -618,7 +739,7 @@ with tab_overview:
 # TAB 3 - ANALYSE DES PRIX
 # ------------------------------------------------------------
 with tab_prices:
-    st.markdown("## Analyse des prix")
+    st.markdown(section_header("euro", "Analyse des prix", level=2), unsafe_allow_html=True)
 
     if len(df_f) > 0:
         c1, c2 = st.columns(2)
@@ -649,7 +770,7 @@ with tab_prices:
             st.plotly_chart(fig2, use_container_width=True)
 
         # Quartiles
-        st.markdown("### Statistiques de prix")
+        st.markdown(section_header("tag", "Statistiques de prix", level=4), unsafe_allow_html=True)
         p1, p2, p3, p4, p5 = st.columns(5)
         p1.metric("Min", f"{df_f['price'].min():.0f} €")
         p2.metric("Q1 (25%)", f"{df_f['price'].quantile(0.25):.0f} €")
@@ -658,7 +779,7 @@ with tab_prices:
         p5.metric("Max", f"{df_f['price'].max():.0f} €")
 
         # Correlation prix / note
-        st.markdown("### Corrélation prix vs note moyenne")
+        st.markdown(section_header("trending", "Corrélation prix vs note moyenne", level=4), unsafe_allow_html=True)
         df_corr = df_f.dropna(subset=["review_scores_rating"])
         df_corr = df_corr[df_corr["price"] <= 500]
         if len(df_corr) > 0:
@@ -681,7 +802,7 @@ with tab_prices:
 # TAB 4 - AVIS & SENTIMENT
 # ------------------------------------------------------------
 with tab_reviews:
-    st.markdown("## Avis & Sentiment")
+    st.markdown(section_header("chat", "Avis & Sentiment", level=2), unsafe_allow_html=True)
 
     if len(df_rev_f) > 0:
         # KPIs sentiment
@@ -735,7 +856,7 @@ with tab_reviews:
             st.plotly_chart(fig2, use_container_width=True)
 
         # Sentiment par type
-        st.markdown("### Sentiment moyen par type de logement")
+        st.markdown(section_header("star", "Sentiment moyen par type de logement", level=4), unsafe_allow_html=True)
         sent_by_rt = df_rev_f.groupby("room_type")["sentiment_score"].mean().reset_index()
         sent_by_rt.columns = ["room_type", "score_sentiment"]
         fig3 = px.bar(
@@ -751,7 +872,7 @@ with tab_reviews:
         st.plotly_chart(fig3, use_container_width=True)
 
         # Echantillon d'avis
-        st.markdown("### Échantillon d'avis récents")
+        st.markdown(section_header("chat", "Échantillon d'avis récents", level=4), unsafe_allow_html=True)
         sample_cols = ["review_date", "room_type", "sentiment", "review_text"]
         sample = df_rev_f.sort_values("review_date", ascending=False).head(10)[sample_cols]
         st.dataframe(sample, use_container_width=True, hide_index=True)
@@ -762,7 +883,7 @@ with tab_reviews:
 # TAB 5 - PLEINE LUNE
 # ------------------------------------------------------------
 with tab_moon:
-    st.markdown("## Analyse Pleine Lune")
+    st.markdown(section_header("moon", "Analyse Pleine Lune", level=2), unsafe_allow_html=True)
     st.markdown(
         "<div style='color:#7A6354;margin-bottom:1rem;font-size:0.95rem'>"
         "Croisement des avis avec les dates de pleine lune (J ou J+1). "
@@ -837,7 +958,7 @@ with tab_moon:
         fig3.update_layout(height=380)
         st.plotly_chart(fig3, use_container_width=True)
 
-        st.markdown("### Échantillon d'avis pleine lune")
+        st.markdown(section_header("moon", "Échantillon d'avis pleine lune", level=4), unsafe_allow_html=True)
         cols = ["review_date", "full_moon_date", "room_type", "sentiment", "review_text"]
         cols = [c for c in cols if c in df_for_moon.columns]
         st.dataframe(
