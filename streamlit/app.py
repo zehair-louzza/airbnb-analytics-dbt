@@ -1,165 +1,799 @@
+"""
+Airbnb Analytics Dashboard - Berlin
+Pipeline : DuckDB + dbt + Streamlit
+Auteur : Zehair LOUZZA - MBA ESG Big Data & AI 2026
+"""
 import streamlit as st
 import duckdb
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import os
 
-st.set_page_config(page_title="Airbnb Analytics - Berlin", page_icon="house", layout="wide", initial_sidebar_state="expanded")
+# ============================================================
+# CONFIGURATION
+# ============================================================
+st.set_page_config(
+    page_title="Airbnb Analytics - Berlin",
+    page_icon="🏙️",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "airbnb.duckdb")
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data",
+    "airbnb.duckdb",
+)
 
+# Couleurs du theme (alignees sur design_guidelines.json)
+COLOR_PRIMARY = "#FF1F53"
+COLOR_ACCENT = "#FFD700"
+COLOR_BG = "#0A0A0A"
+COLOR_SURFACE = "#141414"
+COLOR_TEXT = "#FFFFFF"
+COLOR_MUTED = "#A1A1AA"
+PLOTLY_TEMPLATE = "plotly_dark"
+
+# ============================================================
+# CSS GLOBAL
+# ============================================================
+GLOBAL_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=DM+Sans:wght@400;500;600&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'DM Sans', sans-serif !important;
+    color: #FFFFFF;
+}
+h1, h2, h3, h4 {
+    font-family: 'Bricolage Grotesque', sans-serif !important;
+    letter-spacing: -0.02em;
+}
+section[data-testid="stSidebar"] {
+    background: #0A0A0A !important;
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3 {
+    color: #FF1F53 !important;
+}
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    background: transparent;
+}
+.stTabs [data-baseweb="tab"] {
+    background: #141414;
+    color: #A1A1AA;
+    border-radius: 10px;
+    padding: 10px 20px;
+    border: 1px solid rgba(255,255,255,0.06);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+}
+.stTabs [aria-selected="true"] {
+    background: #FF1F53 !important;
+    color: #FFFFFF !important;
+    border-color: #FF1F53 !important;
+}
+[data-testid="stMetric"] {
+    background: #141414;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 18px;
+    transition: transform .25s ease, border-color .25s ease;
+}
+[data-testid="stMetric"]:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 31, 83, 0.4);
+}
+[data-testid="stMetricLabel"] {
+    color: #A1A1AA !important;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem !important;
+    font-weight: 600;
+}
+[data-testid="stMetricValue"] {
+    font-family: 'Bricolage Grotesque', sans-serif !important;
+    color: #FFFFFF !important;
+    font-size: 1.9rem !important;
+    font-weight: 800 !important;
+}
+.block-container {
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+    max-width: 1400px;
+}
+hr {
+    border-color: rgba(255,255,255,0.06);
+}
+.stButton > button {
+    background: #FF1F53;
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 0.6rem 1.4rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease;
+}
+.stButton > button:hover {
+    background: #E01747;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(255, 31, 83, 0.3);
+    color: white;
+}
+</style>
+"""
+
+HERO_HTML = """
+<div class="e1-hero-container" data-testid="landing-hero">
+  <div class="e1-hero-badge">Berlin Analytics Engine</div>
+  <h1 class="e1-hero-title">Décoder Berlin via<br><span>les annonces Airbnb.</span></h1>
+  <p class="e1-hero-subtitle">Une plateforme analytique haute performance qui transforme 17 499 logements et 409 695 avis en insights actionnables : prix, tendances, sentiment et un focus original sur l'effet pleine lune.</p>
+  <div class="e1-tech-stack">
+    <span class="e1-tech-badge">DuckDB</span>
+    <span class="e1-tech-badge">dbt</span>
+    <span class="e1-tech-badge">Streamlit</span>
+    <span class="e1-tech-badge">Plotly</span>
+    <span class="e1-tech-badge">Python</span>
+  </div>
+  <div class="e1-hero-author">Réalisé par <strong>Zehair LOUZZA</strong> &bull; MBA ESG Big Data & IA — Promotion 2026</div>
+</div>
+<style>
+.e1-hero-container {
+    position: relative;
+    width: 100%;
+    min-height: 55vh;
+    border-radius: 24px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem;
+    background:
+      linear-gradient(135deg, rgba(10,10,10,0.92), rgba(20,20,20,0.78)),
+      url('https://images.unsplash.com/photo-1560930950-5cc20e80e392?crop=entropy&cs=srgb&fm=jpg') center/cover;
+    font-family: 'DM Sans', sans-serif;
+    color: #FFFFFF;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 2.5rem;
+    animation: heroFadeIn .9s ease-out;
+}
+@keyframes heroFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.e1-hero-badge {
+    display: inline-block;
+    background: rgba(255, 31, 83, 0.15);
+    border: 1px solid rgba(255, 31, 83, 0.45);
+    color: #FF1F53;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    width: fit-content;
+}
+.e1-hero-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    margin: 0 0 1.5rem 0;
+    letter-spacing: -0.03em;
+}
+.e1-hero-title span { color: #FF1F53; }
+.e1-hero-subtitle {
+    font-size: 1.1rem;
+    color: #D4D4D8;
+    max-width: 620px;
+    line-height: 1.6;
+    margin: 0 0 2rem 0;
+}
+.e1-hero-author {
+    font-size: 0.85rem;
+    color: #A1A1AA;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 1.2rem;
+    margin-top: 2rem;
+}
+.e1-hero-author strong { color: #FFFFFF; }
+.e1-tech-stack {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.e1-tech-badge {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 0.3rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: #E4E4E7;
+    transition: all .25s ease;
+}
+.e1-tech-badge:hover {
+    background: rgba(255, 31, 83, 0.15);
+    border-color: rgba(255, 31, 83, 0.5);
+    color: #FF1F53;
+}
+</style>
+"""
+
+PIPELINE_HTML = """
+<div class="e1-pipeline-wrapper" data-testid="pipeline-diagram">
+  <div class="e1-pipeline-header">Architecture Medallion — Bronze → Silver → Gold</div>
+  <div class="e1-pipeline-container">
+    <div class="e1-pipeline-node" data-tier="bronze">
+      <div class="e1-pipeline-title" style="color: #CD7F32">Bronze</div>
+      <div class="e1-pipeline-desc">Ingestion brute<br>raw_listings, raw_hosts,<br>raw_reviews</div>
+    </div>
+    <div class="e1-pipeline-arrow"></div>
+    <div class="e1-pipeline-node" data-tier="silver">
+      <div class="e1-pipeline-title" style="color: #C0C0C0">Silver</div>
+      <div class="e1-pipeline-desc">Nettoyage & typage<br>prix, dates,<br>sentiment</div>
+    </div>
+    <div class="e1-pipeline-arrow"></div>
+    <div class="e1-pipeline-node" data-tier="gold">
+      <div class="e1-pipeline-title" style="color: #FFD700">Gold</div>
+      <div class="e1-pipeline-desc">Agrégations métier<br>dim_listings, fact_reviews,<br>full_moon_reviews</div>
+    </div>
+  </div>
+</div>
+<style>
+.e1-pipeline-wrapper {
+    background: #0A0A0A;
+    padding: 2.5rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.06);
+    margin: 1.5rem 0 2rem 0;
+}
+.e1-pipeline-header {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    color: #FFFFFF;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: center;
+    letter-spacing: -0.01em;
+}
+.e1-pipeline-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: .5rem;
+}
+.e1-pipeline-node {
+    background: #141414;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 1.5rem;
+    min-width: 200px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    transition: transform .3s ease, box-shadow .3s ease;
+}
+.e1-pipeline-node:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+.e1-pipeline-node[data-tier="bronze"] { border-top: 4px solid #CD7F32; }
+.e1-pipeline-node[data-tier="silver"] { border-top: 4px solid #C0C0C0; }
+.e1-pipeline-node[data-tier="gold"]   { border-top: 4px solid #FFD700; }
+.e1-pipeline-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.e1-pipeline-desc {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    color: #A1A1AA;
+    line-height: 1.5;
+}
+.e1-pipeline-arrow {
+    height: 2px;
+    flex-grow: 1;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,31,83,0.6) 50%, rgba(255,255,255,0.05) 100%);
+    position: relative;
+    min-width: 40px;
+}
+.e1-pipeline-arrow::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-45deg);
+    border: solid #FF1F53;
+    border-width: 0 2px 2px 0;
+    display: inline-block;
+    padding: 5px;
+}
+@media (max-width: 800px) {
+    .e1-pipeline-container { flex-direction: column; }
+    .e1-pipeline-arrow { width: 2px; height: 30px; min-width: 2px; transform: rotate(0); }
+    .e1-pipeline-arrow::after { right: 50%; transform: translate(50%, -50%) rotate(45deg); top: 100%; }
+}
+</style>
+"""
+
+# ============================================================
+# DATA LOADING
+# ============================================================
 @st.cache_resource
 def get_con():
     return duckdb.connect(DB_PATH, read_only=True)
 
 @st.cache_data(ttl=300)
-def q(sql):
+def q(sql: str) -> pd.DataFrame:
     return get_con().execute(sql).df()
 
+if not os.path.exists(DB_PATH):
+    st.error(
+        f"Base DuckDB introuvable ({DB_PATH}).\n\n"
+        "Lance d'abord :\n"
+        "1. `python scripts/load_data.py --data-dir ./data/raw`\n"
+        "2. `dbt seed && dbt run`"
+    )
+    st.stop()
+
 df_listings = q("SELECT * FROM main_gold.dim_listings")
-df_hosts    = q("SELECT * FROM main_gold.dim_hosts")
-df_reviews  = q("SELECT * FROM main_gold.fact_reviews")
-df_moon     = q("SELECT * FROM main_gold.full_moon_reviews")
+df_hosts = q("SELECT * FROM main_gold.dim_hosts")
+df_reviews = q("SELECT * FROM main_gold.fact_reviews")
+df_moon = q("SELECT * FROM main_gold.full_moon_reviews")
 
-st.sidebar.title("Filtres")
-neighbourhoods = sorted(df_listings["neighbourhood"].dropna().unique().tolist())
-selected_nb = st.sidebar.multiselect("Quartier(s)", options=neighbourhoods, default=[])
-price_min = float(df_listings["price"].min())
-price_max = float(df_listings["price"].max())
-selected_price = st.sidebar.slider("Prix moyen (EUR/nuit)", min_value=price_min, max_value=price_max, value=(price_min, price_max), step=5.0)
+# Injection CSS global
+st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+
+# ============================================================
+# SIDEBAR - FILTRES
+# ============================================================
+st.sidebar.markdown("### 🎛️ Filtres")
+st.sidebar.markdown("---")
+
 room_types = sorted(df_listings["room_type"].dropna().unique().tolist())
-selected_rt = st.sidebar.multiselect("Type de logement", options=room_types, default=[])
-full_moon_only = st.sidebar.checkbox("Pleine lune uniquement", value=False)
+selected_rt = st.sidebar.multiselect(
+    "Type de logement", options=room_types, default=[]
+)
 
+price_min = float(df_listings["price"].min())
+price_max = float(min(df_listings["price"].max(), 1000.0))  # cap visuel a 1000
+selected_price = st.sidebar.slider(
+    "Prix (EUR / nuit)",
+    min_value=price_min,
+    max_value=price_max,
+    value=(price_min, price_max),
+    step=5.0,
+)
+
+full_moon_only = st.sidebar.checkbox("🌕 Pleine lune uniquement", value=False)
+
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    "<div style='color:#A1A1AA;font-size:0.78rem;line-height:1.5;'>"
+    "<strong style='color:#FF1F53'>Auteur</strong><br>"
+    "Zehair LOUZZA<br>"
+    "MBA ESG Big Data & IA<br>"
+    "Promotion 2026"
+    "</div>",
+    unsafe_allow_html=True,
+)
+
+# Application des filtres
 df_f = df_listings.copy()
-if selected_nb:
-    df_f = df_f[df_f["neighbourhood"].isin(selected_nb)]
 df_f = df_f[(df_f["price"] >= selected_price[0]) & (df_f["price"] <= selected_price[1])]
 if selected_rt:
     df_f = df_f[df_f["room_type"].isin(selected_rt)]
+
 df_rev_f = df_reviews.copy()
-if selected_nb:
-    df_rev_f = df_rev_f[df_rev_f["neighbourhood"].isin(selected_nb)]
 if selected_rt:
     df_rev_f = df_rev_f[df_rev_f["room_type"].isin(selected_rt)]
-df_moon_f = df_moon[df_moon["is_full_moon_review"]==True].copy() if full_moon_only else df_moon.copy()
+df_rev_f = df_rev_f[
+    df_rev_f["listing_id"].isin(df_f["listing_id"])
+]
 
-st.info("Auteur unique : LOUZZA Zehair | MBA ESG Big Data & IA | MBAESG_EVALUATION_MANAGEMENT_OPERATIONNEL_2026")
-st.title("Airbnb Analytics Dashboard - Berlin")
-st.markdown("**Pipeline : DBT + DuckDB + Streamlit**")
-st.divider()
+df_moon_f = df_moon.copy()
+if selected_rt:
+    df_moon_f = df_moon_f[df_moon_f["room_type"].isin(selected_rt)]
+df_moon_f = df_moon_f[df_moon_f["listing_id"].isin(df_f["listing_id"])]
 
-k1,k2,k3,k4,k5 = st.columns(5)
-total_listings = len(df_f)
-avg_price = df_f["price"].mean() if total_listings>0 else 0
-avg_rating = df_f["review_scores_rating"].mean() if total_listings>0 else 0
-total_reviews = len(df_rev_f)
-hc = df_f.groupby("host_name").size()
-multi_host_ratio = ((hc>1).sum()/hc.count()*100) if hc.count()>0 else 0
-k1.metric("Logements", f"{total_listings:,}")
-k2.metric("Prix moyen/nuit", f"{avg_price:.0f} EUR")
-k3.metric("Note moyenne", f"{avg_rating:.2f}/5")
-k4.metric("Avis total", f"{total_reviews:,}")
-k5.metric("Multi-annonces", f"{multi_host_ratio:.1f}%")
+# ============================================================
+# TABS
+# ============================================================
+tab_home, tab_overview, tab_prices, tab_reviews, tab_moon = st.tabs(
+    ["🏠 Accueil", "📊 Vue d'ensemble", "💶 Analyse des prix", "💬 Avis & Sentiment", "🌕 Pleine Lune"]
+)
 
-r1,r2,r3,r4,r5 = st.columns(5)
-sh = int(df_hosts["is_superhost"].sum()) if "is_superhost" in df_hosts.columns else 0
-sh_ratio = sh/len(df_hosts)*100 if len(df_hosts)>0 else 0
-occ = (df_f["number_of_reviews"]>=10).mean()*100 if total_listings>0 else 0
-pq = (df_f["price"]/df_f["review_scores_rating"].replace(0,pd.NA)).mean() if total_listings>0 else 0
-moon_r = df_moon[df_moon["is_full_moon_review"]==True].shape[0]
-moon_pct = moon_r/total_reviews*100 if total_reviews>0 else 0
-minn = df_f["minimum_nights"].mean() if total_listings>0 else 0
-r1.metric("Superhosts", f"{sh_ratio:.1f}%")
-r2.metric("Taux occupation", f"{occ:.1f}%")
-r3.metric("Prix/Qualite", f"{pq:.1f} EUR/pt")
-r4.metric("Avis pleine lune", f"{moon_pct:.1f}%")
-r5.metric("Nuits min moy", f"{minn:.1f}")
-st.divider()
+# ------------------------------------------------------------
+# TAB 1 - LANDING PAGE
+# ------------------------------------------------------------
+with tab_home:
+    st.markdown(HERO_HTML, unsafe_allow_html=True)
 
-tab1,tab2,tab3,tab4 = st.tabs(["Vue par quartier","Analyse des prix","Avis et Ratings","Pleine Lune"])
+    # KPIs principaux (depuis les donnees reelles, non filtrees)
+    total_listings = len(df_listings)
+    avg_price_all = df_listings["price"].mean()
+    avg_rating_all = df_listings["review_scores_rating"].mean()
+    total_reviews_all = len(df_reviews)
+    superhost_pct = df_hosts["is_superhost"].mean() * 100
+    multi_host_pct = df_hosts["is_multi_host"].mean() * 100
+    moon_reviews = len(df_moon)
+    moon_pct = (moon_reviews / total_reviews_all * 100) if total_reviews_all else 0
 
-with tab1:
-    st.subheader("Distribution par quartier")
-    if len(df_f)>0:
-        nb = df_f.groupby("neighbourhood").agg(total=("price","count"),avg_price=("price","mean"),avg_rating=("review_scores_rating","mean")).reset_index().sort_values("total",ascending=False).head(15)
-        c1,c2 = st.columns(2)
+    st.markdown("### Indicateurs clés")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Logements actifs", f"{total_listings:,}".replace(",", " "))
+    c2.metric("Prix moyen / nuit", f"{avg_price_all:.0f} €")
+    c3.metric("Note moyenne", f"{avg_rating_all:.2f} / 5")
+    c4.metric("Avis analysés", f"{total_reviews_all/1000:.0f}K")
+
+    c5, c6, c7, c8 = st.columns(4)
+    c5.metric("Superhosts", f"{superhost_pct:.1f}%")
+    c6.metric("Multi-annonces", f"{multi_host_pct:.1f}%")
+    c7.metric("Avis pleine lune", f"{moon_pct:.1f}%")
+    c8.metric("Période couverte", "2009 → 2021")
+
+    st.markdown(PIPELINE_HTML, unsafe_allow_html=True)
+
+    # Section descriptive
+    desc_c1, desc_c2 = st.columns([1.2, 1])
+    with desc_c1:
+        st.markdown("### À propos du projet")
+        st.markdown(
+            """
+Cette plateforme analytique implémente l'intégralité d'un pipeline data moderne sur les annonces
+**Airbnb de Berlin**. Elle s'appuie sur trois piliers :
+
+- **DuckDB** comme moteur analytique embarqué — ultra-rapide sur fichiers locaux.
+- **dbt** pour orchestrer les transformations SQL en couches *Bronze / Silver / Gold*.
+- **Streamlit + Plotly** pour livrer une expérience interactive et exploratoire.
+
+Au-delà des KPIs classiques (prix, satisfaction, multi-annonces), une **analyse originale**
+explore l'effet de la **pleine lune** sur les avis publiés — un clin d'œil aux théories
+comportementales lunaires.
+            """
+        )
+    with desc_c2:
+        st.markdown("### Quatre angles d'analyse")
+        st.markdown(
+            """
+1. **Vue d'ensemble** — Cartographie globale du marché par type de logement.
+2. **Analyse des prix** — Distribution, outliers, segmentation tarifaire.
+3. **Avis & Sentiment** — Évolution temporelle, polarité des commentaires.
+4. **Pleine Lune** — Recherche d'un signal saisonnier-lunaire dans les reviews.
+            """
+        )
+
+    st.markdown("---")
+    st.markdown(
+        "<div style='text-align:center;color:#71717A;font-size:0.85rem;padding:1rem 0;'>"
+        "👉 Naviguez via les onglets ci-dessus pour explorer les analyses détaillées."
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+# ------------------------------------------------------------
+# TAB 2 - VUE D'ENSEMBLE
+# ------------------------------------------------------------
+with tab_overview:
+    st.markdown("## 📊 Vue d'ensemble du marché")
+    st.markdown(
+        f"<div style='color:#A1A1AA;margin-bottom:1.5rem'>"
+        f"Sélection actuelle : <strong style='color:#FF1F53'>{len(df_f):,}</strong> logements"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    if len(df_f) > 0:
+        # Repartition par type de logement
+        c1, c2 = st.columns(2)
         with c1:
-            fig=px.bar(nb,x="neighbourhood",y="total",color="avg_price",title="Logements par quartier",color_continuous_scale="Reds")
-            fig.update_layout(xaxis_tickangle=-45);st.plotly_chart(fig,width='stretch')
+            rt_counts = df_f.groupby("room_type").size().reset_index(name="count")
+            fig = px.bar(
+                rt_counts,
+                x="room_type",
+                y="count",
+                title="Répartition par type de logement",
+                color="room_type",
+                color_discrete_sequence=["#FF1F53", "#FFD700", "#A1A1AA", "#CD7F32"],
+                template=PLOTLY_TEMPLATE,
+            )
+            fig.update_layout(showlegend=False, height=380)
+            st.plotly_chart(fig, use_container_width=True)
         with c2:
-            fig2=px.bar(nb,x="neighbourhood",y="avg_price",color="avg_rating",title="Prix moyen par quartier",color_continuous_scale="Blues")
-            fig2.update_layout(xaxis_tickangle=-45);st.plotly_chart(fig2,width='stretch')
-        st.subheader("Ratio Prix/Qualite par quartier")
-        nb["pq_ratio"]=nb["avg_price"]/nb["avg_rating"]
-        fig3=px.bar(nb.sort_values("pq_ratio"),x="neighbourhood",y="pq_ratio",title="Prix par point de note (EUR)",color="pq_ratio",color_continuous_scale="RdYlGn_r")
-        fig3.update_layout(xaxis_tickangle=-45);st.plotly_chart(fig3,width='stretch')
-    else:
-        st.info("Aucune donnee pour les filtres selectionnes")
+            fig2 = px.pie(
+                rt_counts,
+                values="count",
+                names="room_type",
+                title="Parts de marché par type",
+                color_discrete_sequence=["#FF1F53", "#FFD700", "#A1A1AA", "#CD7F32"],
+                template=PLOTLY_TEMPLATE,
+                hole=0.4,
+            )
+            fig2.update_layout(height=380)
+            st.plotly_chart(fig2, use_container_width=True)
 
-with tab2:
-    st.subheader("Analyse des prix")
-    if len(df_f)>0:
-        c1,c2 = st.columns(2)
+        # Stats par type
+        st.markdown("### Statistiques par type de logement")
+        stats = df_f.groupby("room_type").agg(
+            logements=("listing_id", "count"),
+            prix_moyen=("price", "mean"),
+            prix_median=("price", "median"),
+            note_moyenne=("review_scores_rating", "mean"),
+            avis_total=("number_of_reviews", "sum"),
+            nuits_min_moy=("minimum_nights", "mean"),
+        ).round(2).reset_index()
+        st.dataframe(stats, use_container_width=True, hide_index=True)
+
+        # Top hosts
+        st.markdown("### Top 10 hôtes par nombre d'annonces")
+        top_hosts = df_hosts[df_hosts["total_listings"] > 0].nlargest(10, "total_listings")[
+            ["host_name", "total_listings", "avg_price", "total_reviews", "is_superhost"]
+        ]
+        top_hosts.columns = ["Hôte", "Annonces", "Prix moyen (€)", "Avis total", "Superhost"]
+        top_hosts["Prix moyen (€)"] = top_hosts["Prix moyen (€)"].round(0)
+        st.dataframe(top_hosts, use_container_width=True, hide_index=True)
+    else:
+        st.info("Aucune donnée pour les filtres sélectionnés.")
+
+# ------------------------------------------------------------
+# TAB 3 - ANALYSE DES PRIX
+# ------------------------------------------------------------
+with tab_prices:
+    st.markdown("## 💶 Analyse des prix")
+
+    if len(df_f) > 0:
+        c1, c2 = st.columns(2)
         with c1:
-            fig=px.histogram(df_f,x="price",nbins=50,title="Distribution des prix",color_discrete_sequence=["#FF5A5F"])
-            st.plotly_chart(fig,width='stretch')
+            # Histogramme prix (filtre les outliers > 500 pour visu)
+            df_viz = df_f[df_f["price"] <= 500]
+            fig = px.histogram(
+                df_viz,
+                x="price",
+                nbins=50,
+                title=f"Distribution des prix (≤ 500€) — n={len(df_viz):,}",
+                color_discrete_sequence=["#FF1F53"],
+                template=PLOTLY_TEMPLATE,
+            )
+            fig.update_layout(height=400, bargap=0.05)
+            st.plotly_chart(fig, use_container_width=True)
         with c2:
-            fig2=px.box(df_f,x="room_type",y="price",title="Prix par type de logement",color="room_type")
-            st.plotly_chart(fig2,width='stretch')
-        st.subheader("Ratio Multi-annonces par quartier")
-        mlt=df_f.groupby("neighbourhood").apply(lambda x: (x.groupby("host_name").size()>1).mean()*100).reset_index()
-        mlt.columns=["neighbourhood","multi_pct"]
-        fig3=px.bar(mlt.sort_values("multi_pct",ascending=False),x="neighbourhood",y="multi_pct",title="% Hosts multi-annonces par quartier",color="multi_pct",color_continuous_scale="Oranges")
-        fig3.update_layout(xaxis_tickangle=-45);st.plotly_chart(fig3,width='stretch')
-    else:
-        st.info("Aucune donnee")
+            fig2 = px.box(
+                df_f[df_f["price"] <= 500],
+                x="room_type",
+                y="price",
+                title="Boxplot prix par type de logement (≤ 500€)",
+                color="room_type",
+                color_discrete_sequence=["#FF1F53", "#FFD700", "#A1A1AA", "#CD7F32"],
+                template=PLOTLY_TEMPLATE,
+            )
+            fig2.update_layout(height=400, showlegend=False)
+            st.plotly_chart(fig2, use_container_width=True)
 
-with tab3:
-    st.subheader("Avis et Ratings")
-    if len(df_rev_f)>0:
-        c1,c2 = st.columns(2)
+        # Quartiles
+        st.markdown("### Statistiques de prix")
+        p1, p2, p3, p4, p5 = st.columns(5)
+        p1.metric("Min", f"{df_f['price'].min():.0f} €")
+        p2.metric("Q1 (25%)", f"{df_f['price'].quantile(0.25):.0f} €")
+        p3.metric("Médiane", f"{df_f['price'].median():.0f} €")
+        p4.metric("Q3 (75%)", f"{df_f['price'].quantile(0.75):.0f} €")
+        p5.metric("Max", f"{df_f['price'].max():.0f} €")
+
+        # Correlation prix / note
+        st.markdown("### Corrélation prix vs note moyenne")
+        df_corr = df_f.dropna(subset=["review_scores_rating"])
+        df_corr = df_corr[df_corr["price"] <= 500]
+        if len(df_corr) > 0:
+            fig3 = px.scatter(
+                df_corr.sample(min(3000, len(df_corr)), random_state=42),
+                x="price",
+                y="review_scores_rating",
+                color="room_type",
+                title="Prix vs Note (échantillon)",
+                opacity=0.5,
+                template=PLOTLY_TEMPLATE,
+                color_discrete_sequence=["#FF1F53", "#FFD700", "#A1A1AA", "#CD7F32"],
+            )
+            fig3.update_layout(height=420)
+            st.plotly_chart(fig3, use_container_width=True)
+    else:
+        st.info("Aucune donnée pour les filtres sélectionnés.")
+
+# ------------------------------------------------------------
+# TAB 4 - AVIS & SENTIMENT
+# ------------------------------------------------------------
+with tab_reviews:
+    st.markdown("## 💬 Avis & Sentiment")
+
+    if len(df_rev_f) > 0:
+        # KPIs sentiment
+        sent_counts = df_rev_f["sentiment"].value_counts()
+        total = sent_counts.sum()
+        pos_pct = sent_counts.get("positive", 0) / total * 100
+        neu_pct = sent_counts.get("neutral", 0) / total * 100
+        neg_pct = sent_counts.get("negative", 0) / total * 100
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Avis total", f"{total:,}".replace(",", " "))
+        m2.metric("Positifs", f"{pos_pct:.1f}%")
+        m3.metric("Neutres", f"{neu_pct:.1f}%")
+        m4.metric("Négatifs", f"{neg_pct:.1f}%")
+
+        c1, c2 = st.columns(2)
         with c1:
-            if "review_date" in df_rev_f.columns:
-                df_rev_f["month"]=pd.to_datetime(df_rev_f["review_date"],errors="coerce").dt.to_period("M").astype(str)
-                monthly=df_rev_f.groupby("month").size().reset_index(name="count").tail(24)
-                fig=px.line(monthly,x="month",y="count",title="Avis par mois",markers=True,color_discrete_sequence=["#FF5A5F"])
-                fig.update_layout(xaxis_tickangle=-45);st.plotly_chart(fig,width='stretch')
+            # Evolution temporelle
+            df_rev_f_copy = df_rev_f.copy()
+            df_rev_f_copy["month"] = pd.to_datetime(
+                df_rev_f_copy["review_date"], errors="coerce"
+            ).dt.to_period("M").astype(str)
+            monthly = df_rev_f_copy.groupby("month").size().reset_index(name="count").tail(60)
+            fig = px.line(
+                monthly,
+                x="month",
+                y="count",
+                title="Volume d'avis par mois (60 derniers)",
+                markers=True,
+                color_discrete_sequence=["#FF1F53"],
+                template=PLOTLY_TEMPLATE,
+            )
+            fig.update_layout(xaxis_tickangle=-45, height=400)
+            st.plotly_chart(fig, use_container_width=True)
         with c2:
-            if "review_scores_rating" in df_f.columns:
-                rt_rating=df_f.groupby("room_type")["review_scores_rating"].mean().reset_index()
-                fig2=px.bar(rt_rating,x="room_type",y="review_scores_rating",title="Note moyenne par type",color="review_scores_rating",color_continuous_scale="Greens")
-                st.plotly_chart(fig2,width='stretch')
-        st.subheader("Top 10 logements les mieux notes")
-        top10=df_f[["host_name","neighbourhood","room_type","price","review_scores_rating","number_of_reviews"]].sort_values("review_scores_rating",ascending=False).head(10)
-        st.dataframe(top10,width='stretch')
-    else:
-        st.info("Aucune donnee")
+            # Distribution sentiment
+            sent_df = sent_counts.reset_index()
+            sent_df.columns = ["sentiment", "count"]
+            color_map = {"positive": "#22C55E", "neutral": "#FFD700", "negative": "#FF1F53"}
+            fig2 = px.pie(
+                sent_df,
+                values="count",
+                names="sentiment",
+                title="Répartition du sentiment",
+                color="sentiment",
+                color_discrete_map=color_map,
+                template=PLOTLY_TEMPLATE,
+                hole=0.5,
+            )
+            fig2.update_layout(height=400)
+            st.plotly_chart(fig2, use_container_width=True)
 
-with tab4:
-    st.subheader("Analyse Pleine Lune")
-    if len(df_moon_f)>0:
-        c1,c2 = st.columns(2)
+        # Sentiment par type
+        st.markdown("### Sentiment moyen par type de logement")
+        sent_by_rt = df_rev_f.groupby("room_type")["sentiment_score"].mean().reset_index()
+        sent_by_rt.columns = ["room_type", "score_sentiment"]
+        fig3 = px.bar(
+            sent_by_rt.sort_values("score_sentiment", ascending=False),
+            x="room_type",
+            y="score_sentiment",
+            title="Score moyen de sentiment (−1 = négatif, +1 = positif)",
+            color="score_sentiment",
+            color_continuous_scale=[[0, "#FF1F53"], [0.5, "#FFD700"], [1, "#22C55E"]],
+            template=PLOTLY_TEMPLATE,
+        )
+        fig3.update_layout(height=400)
+        st.plotly_chart(fig3, use_container_width=True)
+
+        # Echantillon d'avis
+        st.markdown("### Échantillon d'avis récents")
+        sample_cols = ["review_date", "room_type", "sentiment", "review_text"]
+        sample = df_rev_f.sort_values("review_date", ascending=False).head(10)[sample_cols]
+        st.dataframe(sample, use_container_width=True, hide_index=True)
+    else:
+        st.info("Aucune donnée d'avis pour les filtres sélectionnés.")
+
+# ------------------------------------------------------------
+# TAB 5 - PLEINE LUNE
+# ------------------------------------------------------------
+with tab_moon:
+    st.markdown("## 🌕 Analyse Pleine Lune")
+    st.markdown(
+        "<div style='color:#A1A1AA;margin-bottom:1rem;font-size:0.95rem'>"
+        "Croisement des avis avec les dates de pleine lune (J ou J+1). "
+        "Y a-t-il un pattern lunaire dans la satisfaction Airbnb ?"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    df_for_moon = df_moon_f if full_moon_only else df_moon_f
+    total_moon = len(df_for_moon)
+    total_all_reviews = len(df_rev_f) if len(df_rev_f) > 0 else 1
+    pct_moon = total_moon / total_all_reviews * 100
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Avis pleine lune", f"{total_moon:,}".replace(",", " "))
+    m2.metric("% du total filtré", f"{pct_moon:.2f}%")
+    # Sentiment pleine lune vs nuit normale
+    moon_sent = df_for_moon["sentiment_score"].mean() if total_moon else 0
+    normal_reviews = df_rev_f[~df_rev_f["listing_id"].isin(df_for_moon["listing_id"]) | True]
+    normal_sent = df_rev_f["sentiment_score"].mean() if len(df_rev_f) else 0
+    m3.metric("Sentiment lune", f"{moon_sent:.3f}")
+    m4.metric("Sentiment global", f"{normal_sent:.3f}")
+
+    if total_moon > 0:
+        c1, c2 = st.columns(2)
         with c1:
-            moon_nb=df_moon_f.groupby("neighbourhood").size().reset_index(name="avis").sort_values("avis",ascending=False).head(10)
-            fig=px.bar(moon_nb,x="neighbourhood",y="avis",title="Avis pleine lune par quartier",color="avis",color_continuous_scale="Purples")
-            fig.update_layout(xaxis_tickangle=-45);st.plotly_chart(fig,width='stretch')
+            # Par type de logement
+            moon_rt = df_for_moon.groupby("room_type").size().reset_index(name="avis")
+            fig = px.bar(
+                moon_rt,
+                x="room_type",
+                y="avis",
+                title="Avis pleine lune par type de logement",
+                color="avis",
+                color_continuous_scale="Purples",
+                template=PLOTLY_TEMPLATE,
+            )
+            fig.update_layout(height=380)
+            st.plotly_chart(fig, use_container_width=True)
         with c2:
-            moon_rt=df_moon_f.groupby("room_type").size().reset_index(name="avis")
-            fig2=px.pie(moon_rt,values="avis",names="room_type",title="Avis pleine lune par type")
-            st.plotly_chart(fig2,width='stretch')
-        st.subheader("Comparaison : pleine lune vs nuit normale")
-        cmp=df_moon.groupby("is_full_moon_review").size().reset_index(name="count")
-        cmp["label"]=cmp["is_full_moon_review"].map({True:"Pleine Lune",False:"Nuit normale"})
-        fig3=px.bar(cmp,x="label",y="count",title="Volume d avis : pleine lune vs normal",color="label")
-        st.plotly_chart(fig3,width='stretch')
-        st.subheader("Derniers avis pleine lune")
-        cols=[c for c in ["listing_name","neighbourhood","review_date","reviewer_name","review_text"] if c in df_moon_f.columns]
-        st.dataframe(df_moon_f[cols].head(20),width='stretch')
-    else:
-        st.info("Aucun avis de pleine lune trouve")
+            # Sentiment pleine lune
+            moon_sent_df = df_for_moon["sentiment"].value_counts().reset_index()
+            moon_sent_df.columns = ["sentiment", "count"]
+            color_map = {"positive": "#22C55E", "neutral": "#FFD700", "negative": "#FF1F53"}
+            fig2 = px.pie(
+                moon_sent_df,
+                values="count",
+                names="sentiment",
+                title="Sentiment des avis pleine lune",
+                color="sentiment",
+                color_discrete_map=color_map,
+                template=PLOTLY_TEMPLATE,
+                hole=0.4,
+            )
+            fig2.update_layout(height=380)
+            st.plotly_chart(fig2, use_container_width=True)
 
-st.divider()
-st.caption("Airbnb Analytics Platform | DBT + DuckDB + Streamlit | MBA ESG 2026")
+        # Evolution annuelle des avis pleine lune
+        df_for_moon_copy = df_for_moon.copy()
+        df_for_moon_copy["year"] = pd.to_datetime(
+            df_for_moon_copy["review_date"], errors="coerce"
+        ).dt.year
+        yearly = df_for_moon_copy.groupby("year").size().reset_index(name="count")
+        fig3 = px.area(
+            yearly,
+            x="year",
+            y="count",
+            title="Évolution des avis pleine lune par année",
+            color_discrete_sequence=["#FFD700"],
+            template=PLOTLY_TEMPLATE,
+        )
+        fig3.update_layout(height=380)
+        st.plotly_chart(fig3, use_container_width=True)
+
+        st.markdown("### Échantillon d'avis pleine lune")
+        cols = ["review_date", "full_moon_date", "room_type", "sentiment", "review_text"]
+        cols = [c for c in cols if c in df_for_moon.columns]
+        st.dataframe(
+            df_for_moon[cols].sort_values("review_date", ascending=False).head(15),
+            use_container_width=True,
+            hide_index=True,
+        )
+    else:
+        st.info("Aucun avis de pleine lune pour les filtres sélectionnés.")
+
+# ============================================================
+# FOOTER
+# ============================================================
+st.markdown("---")
+st.markdown(
+    "<div style='text-align:center;color:#71717A;font-size:0.8rem;padding:1rem 0;'>"
+    "Airbnb Analytics Platform &bull; dbt + DuckDB + Streamlit &bull; "
+    "<strong style='color:#FF1F53'>MBA ESG Big Data & IA — Promotion 2026</strong>"
+    "</div>",
+    unsafe_allow_html=True,
+)

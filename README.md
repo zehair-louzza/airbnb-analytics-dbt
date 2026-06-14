@@ -119,19 +119,25 @@ airbnb-analytics-dbt/
 ## Modeles dbt
 
 ### Bronze - Ingestion brute
-- **bronze_listings** : Chargement direct du CSV Inside Airbnb sans transformation
+- **bronze_listings** : Chargement des annonces (id, listing_url, name, room_type, minimum_nights, host_id, price, created_at, updated_at)
+- **bronze_hosts** : Chargement des hotes
+- **bronze_reviews** : Chargement des avis avec sentiment pre-classifie
+- **bronze_full_moon_dates** : Chargement du seed des dates de pleine lune
 
 ### Silver - Nettoyage et standardisation
-- **silver_listings** : Nettoyage prix, cast numeriques, filtrage valeurs nulles
-- **silver_reviews** : Standardisation dates, jointure avec listings
-- **silver_hosts** : Parsing date d'inscription, flag superhost
-- **silver_full_moon_dates** : Seed CSV transforme, calcul full_moon_date_plus_1
+- **silver_listings** : Nettoyage du prix (retire `$`, cast en DOUBLE), cap minimum_nights a 30
+- **silver_reviews** : Standardisation dates, derivation `sentiment_score` (-1 / 0 / +1)
+- **silver_hosts** : Cast types, flag `is_superhost` boolean
+- **silver_full_moon_dates** : Calcul `full_moon_date_plus_1` (J+1)
 
 ### Gold - Agregations metier
-- **dim_listings** : Agregation par quartier, prix moyen, note moyenne
-- **dim_hosts** : Ratio superhosts, multi-annonces par hote
-- **fact_reviews** : Table de faits avec metriques par annonce
-- **full_moon_reviews** : Jointure avis x dates lunaires (fenetre J / J+1)
+- **dim_listings** : Listings enrichis avec aggregations reviews (nb_avis, sentiment moyen, note proxy /5)
+- **dim_hosts** : Hotes enrichis (total_listings, avg_price, is_multi_host)
+- **fact_reviews** : Avis joints aux listings + hosts + sentiment
+- **full_moon_reviews** : Avis emis dans la fenetre J / J+1 d'une pleine lune
+
+> **Note** : la note moyenne `review_scores_rating` est derivee du sentiment moyen
+> (mapping `[-1, +1]` -> `[1, 5]`) car la version raw des CSV ne contient pas la note Airbnb d'origine.
 
 ---
 
@@ -154,32 +160,42 @@ airbnb-analytics-dbt/
 
 ## Dashboard Streamlit
 
-L'application propose **4 onglets analytiques** :
+L'application propose **5 onglets** :
 
-### 1. Vue par quartier
-- Distribution des logements par quartier (bar chart)
-- Prix moyen par quartier
-- Top 10 quartiers les plus chers
+### 1. Accueil (Landing Page)
+- Hero section immersif (Berlin Fernsehturm, theme dark urbain)
+- KPIs cles anime au survol (Logements, Prix, Note, Avis, Superhosts...)
+- Diagramme du pipeline Bronze -> Silver -> Gold
+- Presentation du projet et des angles d'analyse
 
-### 2. Analyse des prix
-- Distribution des prix (histogramme)
+### 2. Vue d'ensemble
+- Repartition par type de logement (bar + donut chart)
+- Statistiques par type (prix, note, nb avis, nuits min)
+- Top 10 hotes par nombre d'annonces
+
+### 3. Analyse des prix
+- Distribution des prix (histogramme, capped a 500EUR)
 - Boxplot prix par type de logement
-- Correlation prix / note
+- Quartiles (Min, Q1, Mediane, Q3, Max)
+- Correlation prix vs note (scatter)
 
-### 3. Avis et Ratings
-- Evolution temporelle des avis
-- Distribution des notes
-- Top hotes par nombre d'avis
+### 4. Avis & Sentiment
+- KPIs sentiment (% positifs / neutres / negatifs)
+- Volume d'avis par mois (line chart, 60 derniers mois)
+- Repartition du sentiment (donut)
+- Sentiment moyen par type de logement
+- Echantillon des derniers avis
 
-### 4. Pleine Lune
-- Avis par quartier en periode lunaire (bar chart colore)
-- Repartition par type de logement (pie chart)
-- Analyse comportementale des avis lunaires
+### 5. Pleine Lune
+- KPIs pleine lune (volume, sentiment compare)
+- Avis pleine lune par type de logement
+- Sentiment des avis pleine lune
+- Evolution annuelle des avis lunaires
+- Echantillon des avis pleine lune
 
-### Filtres globaux
-- Quartier(s) (multi-select)
-- Prix moyen EUR/nuit (slider)
+### Filtres globaux (sidebar)
 - Type de logement (multi-select)
+- Prix moyen EUR/nuit (slider)
 - Pleine lune uniquement (checkbox)
 
 ---
@@ -190,9 +206,18 @@ L'application propose **4 onglets analytiques** :
 
 ```bash
 python >= 3.10
-dbt-duckdb >= 1.6
-streamlit >= 1.28
+dbt-duckdb >= 1.8
+streamlit >= 1.35
 ```
+
+### Donnees attendues
+
+Placez les CSV bruts dans `data/raw/` :
+- `listings.csv` (colonnes : id, listing_url, name, room_type, minimum_nights, host_id, price, created_at, updated_at)
+- `hosts.csv` (colonnes : id, name, is_superhost, created_at, updated_at)
+- `reviews.csv` (colonnes : listing_id, date, reviewer_name, comments, sentiment)
+
+Le seed `seeds/full_moon_dates.csv` contient les dates de pleine lune (2009-2030).
 
 ### 1. Installer les dependances
 
@@ -200,15 +225,16 @@ streamlit >= 1.28
 pip install -r requirements.txt
 ```
 
-### 2. Charger les donnees brutes
+### 2. Charger les donnees brutes dans DuckDB (couche Bronze raw)
 
 ```bash
-python scripts/load_data.py
+python scripts/load_data.py --data-dir ./data/raw --db-path ./data/airbnb.duckdb
 ```
 
 ### 3. Executer le pipeline dbt
 
 ```bash
+dbt deps
 dbt seed
 dbt run
 dbt test
@@ -217,7 +243,14 @@ dbt test
 ### 4. Lancer le dashboard
 
 ```bash
-streamlit run streamlit/app.py --server.port 8501
+streamlit run streamlit/app.py
+```
+
+Ou en une commande grace au Makefile :
+
+```bash
+make all          # install + ingest + seed + run + test
+make dashboard    # lance Streamlit
 ```
 
 Ouvrir : http://localhost:8501
