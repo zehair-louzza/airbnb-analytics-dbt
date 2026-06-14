@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: dim_hosts
-    description: Dimension hosts - couche Gold
+    description: "Dimension hosts - couche Gold"
     columns:
       - name: host_id
         tests:
@@ -13,7 +13,7 @@ models:
           - not_null
 
   - name: dim_listings
-    description: Dimension listings - couche Gold
+    description: "Dimension listings - couche Gold (enrichie avec reviews aggreges)"
     columns:
       - name: listing_id
         tests:
@@ -27,7 +27,7 @@ models:
           - not_null
 
   - name: fact_reviews
-    description: Fait avis - couche Gold
+    description: "Fait avis - couche Gold"
     columns:
       - name: listing_id
         tests:
@@ -37,7 +37,7 @@ models:
           - not_null
 
   - name: full_moon_reviews
-    description: Avis pendant pleine lune - couche Gold
+    description: "Avis pendant pleine lune (J ou J+1) - couche Gold"
     columns:
       - name: listing_id
         tests:
