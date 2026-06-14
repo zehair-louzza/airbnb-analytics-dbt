@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: dim_hosts
+    description: "Dimension hosts - couche Gold"
+    columns:
+      - name: host_id
+        tests:
+          - not_null
+          - unique
+      - name: host_name
+        tests:
+          - not_null
+
+  - name: dim_listings
+    description: "Dimension listings - couche Gold (enrichie avec reviews aggreges)"
+    columns:
+      - name: listing_id
+        tests:
+          - not_null
+          - unique
+      - name: host_id
+        tests:
+          - not_null
+      - name: room_type
+        tests:
+          - not_null
+
+  - name: fact_reviews
+    description: "Fait avis - couche Gold"
+    columns:
+      - name: listing_id
+        tests:
+          - not_null
+      - name: review_date
+        tests:
+          - not_null
+
+  - name: full_moon_reviews
+    description: "Avis pendant pleine lune (J ou J+1) - couche Gold"
+    columns:
+      - name: listing_id
+        tests:
+          - not_null
+      - name: full_moon_date
+        tests:
+          - not_null

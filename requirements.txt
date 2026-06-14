@@ -1,0 +1,16 @@
+# Core dbt
+dbt-core==1.8.0
+dbt-duckdb==1.8.0
+
+# DuckDB
+duckdb==0.10.3
+
+# Streamlit
+streamlit==1.35.0
+
+# Visualisation
+plotly==5.22.0
+pandas==2.2.2
+
+# Utilities
+python-dotenv==1.0.1

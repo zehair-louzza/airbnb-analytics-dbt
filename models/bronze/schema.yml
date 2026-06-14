@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: bronze_hosts
+    description: Couche Bronze - Hosts bruts depuis raw_hosts
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - unique
+
+  - name: bronze_listings
+    description: Couche Bronze - Listings bruts depuis raw_listings
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - unique
+
+  - name: bronze_reviews
+    description: Couche Bronze - Avis bruts depuis raw_reviews
+    columns:
+      - name: listing_id
+        tests:
+          - not_null
+
+  - name: bronze_full_moon_dates
+    description: Couche Bronze - Dates de pleine lune depuis seed full_moon_dates
+    columns:
+      - name: full_moon_date
+        tests:
+          - not_null
+          - unique
