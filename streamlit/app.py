@@ -275,24 +275,24 @@ hr {
 """
 
 HERO_HTML = f"""
-<div class="e1-hero-container" data-testid="landing-hero">
-  <div class="e1-hero-top">
-    <div class="e1-hero-logo">{AIRBNB_LOGO_SVG}</div>
-    <div class="e1-hero-badge">Berlin Analytics Engine</div>
+<div class="app-hero-container" data-testid="landing-hero">
+  <div class="app-hero-top">
+    <div class="app-hero-logo">{AIRBNB_LOGO_SVG}</div>
+    <div class="app-hero-badge">Berlin Analytics Engine</div>
   </div>
-  <h1 class="e1-hero-title">Décoder Berlin via<br><span>les annonces Airbnb.</span></h1>
-  <p class="e1-hero-subtitle">Une plateforme analytique haute performance qui transforme 17 499 logements et 409 695 avis en insights actionnables : prix, tendances, sentiment et un focus original sur l'effet pleine lune.</p>
-  <div class="e1-tech-stack">
-    <span class="e1-tech-badge">DuckDB</span>
-    <span class="e1-tech-badge">dbt</span>
-    <span class="e1-tech-badge">Streamlit</span>
-    <span class="e1-tech-badge">Plotly</span>
-    <span class="e1-tech-badge">Python</span>
+  <h1 class="app-hero-title">Décoder Berlin via<br><span>les annonces Airbnb.</span></h1>
+  <p class="app-hero-subtitle">Une plateforme analytique haute performance qui transforme 17 499 logements et 409 695 avis en insights actionnables : prix, tendances, sentiment et un focus original sur l'effet pleine lune.</p>
+  <div class="app-tech-stack">
+    <span class="app-tech-badge">DuckDB</span>
+    <span class="app-tech-badge">dbt</span>
+    <span class="app-tech-badge">Streamlit</span>
+    <span class="app-tech-badge">Plotly</span>
+    <span class="app-tech-badge">Python</span>
   </div>
-  <div class="e1-hero-author">Réalisé par <strong>Zehair LOUZZA</strong> &bull; MBA ESG Big Data & IA — Promotion 2026</div>
+  <div class="app-hero-author">Réalisé par <strong>Zehair LOUZZA</strong> &bull; MBA ESG Big Data & IA — Promotion 2026</div>
 </div>
 <style>
-.e1-hero-container {{
+.app-hero-container {{
     position: relative;
     width: 100%;
     min-height: 55vh;
@@ -316,13 +316,13 @@ HERO_HTML = f"""
     from {{ opacity: 0; transform: translateY(20px); }}
     to   {{ opacity: 1; transform: translateY(0); }}
 }}
-.e1-hero-top {{
+.app-hero-top {{
     display: flex;
     align-items: center;
     gap: 1rem;
     margin-bottom: 1.5rem;
 }}
-.e1-hero-logo {{
+.app-hero-logo {{
     display: flex;
     align-items: center;
     justify-content: center;
@@ -334,8 +334,8 @@ HERO_HTML = f"""
     border-radius: 16px;
     transition: transform .3s ease;
 }}
-.e1-hero-logo:hover {{ transform: rotate(-8deg) scale(1.05); }}
-.e1-hero-badge {{
+.app-hero-logo:hover {{ transform: rotate(-8deg) scale(1.05); }}
+.app-hero-badge {{
     display: inline-block;
     background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(8px);
@@ -349,7 +349,7 @@ HERO_HTML = f"""
     letter-spacing: 0.12em;
     width: fit-content;
 }}
-.e1-hero-title {{
+.app-hero-title {{
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: clamp(2.5rem, 5vw, 4.5rem);
     font-weight: 800;
@@ -359,32 +359,32 @@ HERO_HTML = f"""
     color: #FFFFFF;
     text-shadow: 0 2px 24px rgba(43, 24, 16, 0.25);
 }}
-.e1-hero-title span {{
+.app-hero-title span {{
     color: #FFF3E4;
     font-style: italic;
 }}
-.e1-hero-subtitle {{
+.app-hero-subtitle {{
     font-size: 1.1rem;
     color: #FFF3E4;
     max-width: 640px;
     line-height: 1.6;
     margin: 0 0 2rem 0;
 }}
-.e1-hero-author {{
+.app-hero-author {{
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.85);
     border-top: 1px solid rgba(255, 255, 255, 0.25);
     padding-top: 1.2rem;
     margin-top: 2rem;
 }}
-.e1-hero-author strong {{ color: #FFFFFF; }}
-.e1-tech-stack {{
+.app-hero-author strong {{ color: #FFFFFF; }}
+.app-tech-stack {{
     display: flex;
     gap: 0.6rem;
     margin-bottom: 1rem;
     flex-wrap: wrap;
 }}
-.e1-tech-badge {{
+.app-tech-badge {{
     background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -395,7 +395,7 @@ HERO_HTML = f"""
     font-weight: 600;
     transition: all .25s ease;
 }}
-.e1-tech-badge:hover {{
+.app-tech-badge:hover {{
     background: rgba(255, 255, 255, 0.3);
     border-color: rgba(255, 255, 255, 0.6);
     transform: translateY(-2px);
@@ -404,27 +404,27 @@ HERO_HTML = f"""
 """
 
 PIPELINE_HTML = """
-<div class="e1-pipeline-wrapper" data-testid="pipeline-diagram">
-  <div class="e1-pipeline-header">Architecture Medallion — Bronze → Silver → Gold</div>
-  <div class="e1-pipeline-container">
-    <div class="e1-pipeline-node" data-tier="bronze">
-      <div class="e1-pipeline-title" style="color: #B8702E">Bronze</div>
-      <div class="e1-pipeline-desc">Ingestion brute<br>raw_listings, raw_hosts,<br>raw_reviews</div>
+<div class="app-pipeline-wrapper" data-testid="pipeline-diagram">
+  <div class="app-pipeline-header">Architecture Medallion — Bronze → Silver → Gold</div>
+  <div class="app-pipeline-container">
+    <div class="app-pipeline-node" data-tier="bronze">
+      <div class="app-pipeline-title" style="color: #B8702E">Bronze</div>
+      <div class="app-pipeline-desc">Ingestion brute<br>raw_listings, raw_hosts,<br>raw_reviews</div>
     </div>
-    <div class="e1-pipeline-arrow"></div>
-    <div class="e1-pipeline-node" data-tier="silver">
-      <div class="e1-pipeline-title" style="color: #A0522D">Silver</div>
-      <div class="e1-pipeline-desc">Nettoyage & typage<br>prix, dates,<br>sentiment</div>
+    <div class="app-pipeline-arrow"></div>
+    <div class="app-pipeline-node" data-tier="silver">
+      <div class="app-pipeline-title" style="color: #A0522D">Silver</div>
+      <div class="app-pipeline-desc">Nettoyage & typage<br>prix, dates,<br>sentiment</div>
     </div>
-    <div class="e1-pipeline-arrow"></div>
-    <div class="e1-pipeline-node" data-tier="gold">
-      <div class="e1-pipeline-title" style="color: #D4922A">Gold</div>
-      <div class="e1-pipeline-desc">Agrégations métier<br>dim_listings, fact_reviews,<br>full_moon_reviews</div>
+    <div class="app-pipeline-arrow"></div>
+    <div class="app-pipeline-node" data-tier="gold">
+      <div class="app-pipeline-title" style="color: #D4922A">Gold</div>
+      <div class="app-pipeline-desc">Agrégations métier<br>dim_listings, fact_reviews,<br>full_moon_reviews</div>
     </div>
   </div>
 </div>
 <style>
-.e1-pipeline-wrapper {
+.app-pipeline-wrapper {
     background: linear-gradient(135deg, #FFF8EE 0%, #FFEFD9 100%);
     padding: 2.5rem;
     border-radius: 20px;
@@ -432,7 +432,7 @@ PIPELINE_HTML = """
     margin: 1.5rem 0 2rem 0;
     box-shadow: 0 4px 16px rgba(139, 69, 19, 0.06);
 }
-.e1-pipeline-header {
+.app-pipeline-header {
     font-family: 'Bricolage Grotesque', sans-serif;
     color: #2B1810;
     font-size: 1.4rem;
@@ -441,7 +441,7 @@ PIPELINE_HTML = """
     text-align: center;
     letter-spacing: -0.01em;
 }
-.e1-pipeline-container {
+.app-pipeline-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -449,7 +449,7 @@ PIPELINE_HTML = """
     overflow-x: auto;
     padding-bottom: .5rem;
 }
-.e1-pipeline-node {
+.app-pipeline-node {
     background: #FFFFFF;
     border: 1px solid rgba(139, 69, 19, 0.10);
     border-radius: 14px;
@@ -461,14 +461,14 @@ PIPELINE_HTML = """
     transition: transform .3s ease, box-shadow .3s ease;
     box-shadow: 0 2px 8px rgba(139, 69, 19, 0.05);
 }
-.e1-pipeline-node:hover {
+.app-pipeline-node:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 28px rgba(232, 93, 60, 0.15);
 }
-.e1-pipeline-node[data-tier="bronze"] { border-top: 4px solid #B8702E; }
-.e1-pipeline-node[data-tier="silver"] { border-top: 4px solid #A0522D; }
-.e1-pipeline-node[data-tier="gold"]   { border-top: 4px solid #D4922A; }
-.e1-pipeline-title {
+.app-pipeline-node[data-tier="bronze"] { border-top: 4px solid #B8702E; }
+.app-pipeline-node[data-tier="silver"] { border-top: 4px solid #A0522D; }
+.app-pipeline-node[data-tier="gold"]   { border-top: 4px solid #D4922A; }
+.app-pipeline-title {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 1.3rem;
     font-weight: 800;
@@ -476,20 +476,20 @@ PIPELINE_HTML = """
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
-.e1-pipeline-desc {
+.app-pipeline-desc {
     font-family: 'DM Sans', sans-serif;
     font-size: 0.85rem;
     color: #7A6354;
     line-height: 1.5;
 }
-.e1-pipeline-arrow {
+.app-pipeline-arrow {
     height: 2px;
     flex-grow: 1;
     background: linear-gradient(90deg, rgba(139, 69, 19, 0.1) 0%, rgba(232, 93, 60, 0.7) 50%, rgba(139, 69, 19, 0.1) 100%);
     position: relative;
     min-width: 40px;
 }
-.e1-pipeline-arrow::after {
+.app-pipeline-arrow::after {
     content: '';
     position: absolute;
     right: -2px;
@@ -501,9 +501,9 @@ PIPELINE_HTML = """
     padding: 5px;
 }
 @media (max-width: 800px) {
-    .e1-pipeline-container { flex-direction: column; }
-    .e1-pipeline-arrow { width: 2px; height: 30px; min-width: 2px; transform: rotate(0); }
-    .e1-pipeline-arrow::after { right: 50%; transform: translate(50%, -50%) rotate(45deg); top: 100%; }
+    .app-pipeline-container { flex-direction: column; }
+    .app-pipeline-arrow { width: 2px; height: 30px; min-width: 2px; transform: rotate(0); }
+    .app-pipeline-arrow::after { right: 50%; transform: translate(50%, -50%) rotate(45deg); top: 100%; }
 }
 </style>
 """

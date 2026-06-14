@@ -215,7 +215,11 @@ streamlit >= 1.35
 Placez les CSV bruts dans `data/raw/` :
 - `listings.csv` (colonnes : id, listing_url, name, room_type, minimum_nights, host_id, price, created_at, updated_at)
 - `hosts.csv` (colonnes : id, name, is_superhost, created_at, updated_at)
-- `reviews.csv` (colonnes : listing_id, date, reviewer_name, comments, sentiment)
+- `reviews.csv` **ou** `reviews.csv.gz` (colonnes : listing_id, date, reviewer_name, comments, sentiment)
+
+> **Note** : `reviews.csv` non compresse pese ~112 MB et depasse la limite de fichier GitHub (100 MB).
+> Le repo contient donc directement `reviews.csv.gz` (~39 MB). DuckDB lit le `.gz` nativement —
+> aucune decompression manuelle n'est requise.
 
 Le seed `seeds/full_moon_dates.csv` contient les dates de pleine lune (2009-2030).
 

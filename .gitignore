@@ -216,18 +216,27 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-data/hosts.csv
-data/listings.csv
-data/reviews.csv
-data/airbnb.duckdb
-data/*.duckdb
 
 # DuckDB - base de donnees locale (regenerable via dbt run)
 *.duckdb
 *.duckdb.wal
 
-# Fichiers temporaires et residus
+# Donnees brutes : SEULE reviews.csv (112MB) est exclue car > 100MB GitHub
+# La version compressee reviews.csv.gz (~39MB) est trackee a la place
+data/raw/reviews.csv
+# Ancienne arborescence (data/ a la racine)
+data/hosts.csv
+data/listings.csv
+data/reviews.csv
+
+# Cache et residus
+.ruff_cache/
+logs/
+dbt_packages/
+target/
 readme_out.txt
 fix_schema.py
 
-data/reviews.csv
+# Fichiers internes (documentation E1 non destinee au repo public)
+design_guidelines.json
+memory/

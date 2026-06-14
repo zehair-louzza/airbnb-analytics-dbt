@@ -70,17 +70,24 @@ def load_listings(conn: duckdb.DuckDBPyConnection, data_dir: str) -> int:
 
 
 def load_reviews(conn: duckdb.DuckDBPyConnection, data_dir: str) -> int:
-    """Charge les avis depuis reviews.csv."""
+    """Charge les avis depuis reviews.csv ou reviews.csv.gz (DuckDB gere le gzip nativement)."""
     reviews_path = os.path.join(data_dir, "reviews.csv")
-    if not os.path.exists(reviews_path):
-        logger.warning(f"Fichier introuvable : {reviews_path}")
+    gz_path = os.path.join(data_dir, "reviews.csv.gz")
+
+    if os.path.exists(reviews_path):
+        source = reviews_path
+    elif os.path.exists(gz_path):
+        source = gz_path
+        logger.info(f"Fichier compresse detecte : {gz_path}")
+    else:
+        logger.warning(f"Aucun fichier reviews trouve dans {data_dir}")
         return 0
 
     conn.execute("""
         CREATE OR REPLACE TABLE raw_reviews AS
         SELECT *
         FROM read_csv_auto(?, header=True, ignore_errors=True)
-    """, [reviews_path])
+    """, [source])
 
     count = conn.execute("SELECT COUNT(*) FROM raw_reviews").fetchone()[0]
     logger.info(f"raw_reviews charge : {count:,} lignes")
