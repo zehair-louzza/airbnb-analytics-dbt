@@ -234,6 +234,7 @@ a l'adresse : axel@logbrain.fr
 ## Auteur
 
 **Auteur : Zehair Louzza**
+
 Projet realise dans le cadre du **MBA ESG Big Data & AI** - Promotion 2026  
 Cours : Management Operationnel
 
