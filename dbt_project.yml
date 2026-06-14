@@ -1,0 +1,24 @@
+﻿name: 'airbnb_analytics'
+version: '1.0.0'
+config-version: 2
+profile: 'airbnb_duckdb'
+
+model-paths: ['models']
+seed-paths: ['seeds']
+test-paths: ['tests']
+
+models:
+  airbnb_analytics:
+    bronze:
+      +schema: bronze
+      +materialized: view
+    silver:
+      +schema: silver
+      +materialized: view
+    gold:
+      +schema: gold
+      +materialized: table
+
+seeds:
+  airbnb_analytics:
+    +schema: bronze

@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Sources brutes Airbnb chargees depuis les fichiers CSV"
+    schema: main
+    tables:
+      - name: raw_hosts
+        description: "Table brute des hotes Airbnb"
+      - name: raw_listings
+        description: "Table brute des annonces Airbnb"
+      - name: raw_reviews
+        description: "Table brute des avis Airbnb"
