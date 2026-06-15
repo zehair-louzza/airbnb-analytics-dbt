@@ -44,7 +44,35 @@ VS Code proposera automatiquement de selectionner cet interpreteur — cliquer *
 
 ---
 
-## Etape 3 — Installer les dependances
+## Etape 3 — Selectionner l'interpreteur Python dans VS Code
+
+> ⚠️ Cette etape est obligatoire pour eviter les faux avertissements Pylance
+> (`reportMissingImports`, `duckdb could not be resolved`, etc.)
+
+1. Appuyer sur `Ctrl+Shift+P`
+2. Taper **`Python: Select Interpreter`** → Entree
+3. Selectionner l'option contenant **`.venv`** :
+   ```
+   Python 3.x.x ('.venv': venv)   .\.venv\Scripts\python.exe
+   ```
+
+Si `.venv` n'apparait pas dans la liste, cliquer **"Enter interpreter path..."** et coller :
+```
+C:\chemin\vers\airbnb-analytics-dbt\.venv\Scripts\python.exe
+```
+
+Pour que VS Code retienne ce choix automatiquement, creer le fichier `.vscode/settings.json` :
+
+```json
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+  "python.terminal.activateEnvironment": true
+}
+```
+
+---
+
+## Etape 4 — Installer les dependances
 
 ```bash
 pip install -r requirements.txt
@@ -54,7 +82,7 @@ Packages installes : `dbt-core`, `dbt-duckdb`, `duckdb`, `streamlit`, `plotly`, 
 
 ---
 
-## Etape 4 — Telecharger et ingerer les donnees
+## Etape 5 — Telecharger et ingerer les donnees
 
 ```bash
 python scripts/load_data.py
@@ -73,7 +101,7 @@ python scripts/load_data.py --reviews-url "https://example.com/reviews.csv"
 
 ---
 
-## Etape 5 — Construire les modeles dbt (Bronze → Silver → Gold)
+## Etape 6 — Construire les modeles dbt (Bronze → Silver → Gold)
 
 ```bash
 dbt deps
@@ -91,7 +119,7 @@ dbt test
 
 ---
 
-## Etape 6 — Lancer l'application Streamlit
+## Etape 7 — Lancer l'application Streamlit
 
 ```bash
 streamlit run streamlit/app.py
@@ -103,7 +131,7 @@ Le navigateur s'ouvre automatiquement sur **http://localhost:8501**.
 
 ## Raccourci Makefile
 
-Le projet inclut un `Makefile` pour enchaîner toutes les etapes :
+Le projet inclut un `Makefile` pour enchainer toutes les etapes :
 
 ```bash
 make all        # install + ingest + dbt seed + dbt run + dbt test
@@ -136,6 +164,18 @@ pip install -r requirements.txt  # si requirements.txt a change
 
 ---
 
+## Problemes frequents
+
+| Symptome | Cause | Solution |
+|---|---|---|
+| `reportMissingImports: duckdb` dans VS Code | Mauvais interpreteur Python selectionne | `Ctrl+Shift+P` → `Python: Select Interpreter` → choisir `.venv` |
+| `SyntaxError: unterminated string literal` | Ancien fichier local (ZIP) | Remplacer le fichier par la version GitHub |
+| KPIs affichent `<NA>` dans Streamlit | `listings.csv` incomplet (1 000 lignes) | Supprimer et re-telecharger via `load_data.py` |
+| `No options to select` dans le filtre Quartier | Colonne `neighbourhood` absente du CSV | Verifier les colonnes : `Get-Content .\data\raw\listings.csv \| Select-Object -First 1` |
+| `dbt run` echoue | DuckDB pas encore peuple | Lancer `python scripts/load_data.py` d'abord |
+
+---
+
 ## Arborescence du projet
 
 ```
@@ -149,6 +189,8 @@ airbnb-analytics-dbt/
 |-- docs/
 |   |-- DATA_HOSTING.md
 |   `-- GUIDE_VSCODE.md  <- ce fichier
+|-- .vscode/
+|   `-- settings.json    <- interpreteur Python (optionnel)
 |-- dbt_project.yml
 |-- profiles.yml
 |-- Makefile
