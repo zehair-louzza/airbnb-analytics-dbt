@@ -7,10 +7,11 @@ Usage:
     python scripts/load_data.py --data-dir ./data/raw --db-path ./data/airbnb.duckdb --verify
 
 Tous les fichiers CSV sont telecharges automatiquement depuis GitHub Releases v1.0-data
-si absents dans data/raw/ :
-    - hosts.csv           (~800 KB)
-    - listings.csv        (~2.8 MB)
-    - reviews.csv         (~111 MB)
+si absents dans leurs dossiers respectifs :
+    - data/raw/hosts.csv                  (~800 KB)
+    - data/raw/listings.csv               (~2.8 MB)
+    - data/raw/reviews.csv                (~111 MB)
+    - seeds/seed_full_moon_dates.csv      (~3 KB)
 """
 
 import duckdb
@@ -32,30 +33,37 @@ RELEASE_BASE_URL = (
     "/releases/download/v1.0-data"
 )
 
+# (filename, destination relative to project root)
 RELEASE_FILES = {
-    "hosts.csv":    f"{RELEASE_BASE_URL}/hosts.csv",
-    "listings.csv": f"{RELEASE_BASE_URL}/listings.csv",
-    "reviews.csv":  f"{RELEASE_BASE_URL}/reviews.csv",
+    "hosts.csv":                 ("data/raw/hosts.csv",             f"{RELEASE_BASE_URL}/hosts.csv"),
+    "listings.csv":              ("data/raw/listings.csv",          f"{RELEASE_BASE_URL}/listings.csv"),
+    "reviews.csv":               ("data/raw/reviews.csv",           f"{RELEASE_BASE_URL}/reviews.csv"),
+    "seed_full_moon_dates.csv":  ("seeds/seed_full_moon_dates.csv", f"{RELEASE_BASE_URL}/seed_full_moon_dates.csv"),
 }
 
 
 def ensure_data_files(data_dir: str) -> None:
     """
-    Verifie la presence de chaque CSV dans data_dir.
+    Verifie la presence de chaque fichier a son emplacement attendu.
     Telecharge automatiquement depuis GitHub Releases v1.0-data si absent.
+    Les chemins de destination sont relatifs au dossier de travail courant,
+    sauf pour les 3 CSV Airbnb qui vont dans data_dir.
     """
-    data_path = Path(data_dir)
-    data_path.mkdir(parents=True, exist_ok=True)
+    for filename, (default_dest, url) in RELEASE_FILES.items():
+        # Pour les 3 CSV Airbnb, on respecte --data-dir ; pour le seed, chemin fixe
+        if filename == "seed_full_moon_dates.csv":
+            file_path = Path(default_dest)
+        else:
+            file_path = Path(data_dir) / filename
 
-    for filename, url in RELEASE_FILES.items():
-        file_path = data_path / filename
         if file_path.exists():
-            size_mb = file_path.stat().st_size / 1_048_576
-            logger.info(f"{filename} trouve ({size_mb:.1f} MB) : {file_path}")
+            size_kb = file_path.stat().st_size / 1024
+            logger.info(f"{filename} trouve ({size_kb:.0f} KB) : {file_path}")
             continue
 
         logger.warning(f"{filename} absent - telechargement depuis GitHub Releases...")
         logger.info(f"  URL : {url}")
+        file_path.parent.mkdir(parents=True, exist_ok=True)
 
         def _progress(block_num, block_size, total_size, fname=filename):
             downloaded = block_num * block_size
@@ -68,8 +76,8 @@ def ensure_data_files(data_dir: str) -> None:
         try:
             urllib.request.urlretrieve(url, file_path, _progress)
             print()  # newline apres la progression
-            size_mb = file_path.stat().st_size / 1_048_576
-            logger.info(f"{filename} telecharge avec succes ({size_mb:.1f} MB)")
+            size_kb = file_path.stat().st_size / 1024
+            logger.info(f"{filename} telecharge avec succes ({size_kb:.0f} KB) -> {file_path}")
         except Exception as e:
             logger.error(f"Echec du telechargement de {filename} : {e}")
             logger.error(f"Telechargez manuellement depuis : {url}")
@@ -174,7 +182,7 @@ def main():
     parser.add_argument(
         "--no-download",
         action="store_true",
-        help="Desactive le telechargement automatique des CSV manquants"
+        help="Desactive le telechargement automatique des fichiers manquants"
     )
     args = parser.parse_args()
 
@@ -184,7 +192,7 @@ def main():
     logger.info(f"Source     : {args.data_dir}")
     logger.info(f"Base DuckDB: {args.db_path}")
 
-    # Auto-download des CSV manquants (sauf si --no-download)
+    # Auto-download des fichiers manquants (sauf si --no-download)
     if not args.no_download:
         ensure_data_files(args.data_dir)
 
