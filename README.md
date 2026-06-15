@@ -23,7 +23,7 @@
 
 Ce projet realise une **plateforme analytique complete** sur les annonces Airbnb de Berlin (17 499 logements). Il couvre l'integralite du cycle de vie de la donnee :
 
-1. **Ingestion** des donnees brutes (CSV Inside Airbnb)
+1. **Ingestion** des donnees brutes (CSV Inside Airbnb) — telechargement automatique depuis GitHub Releases
 2. **Transformation** en couches Bronze / Silver / Gold via dbt
 3. **Stockage** analytique dans DuckDB (base locale haute performance)
 4. **Visualisation** interactive via une application Streamlit
@@ -73,13 +73,13 @@ Source CSV (Inside Airbnb)
 
 | Composant | Role | Version |
 |-----------|------|---------|
-| **DuckDB** | Base de donnees analytique locale | >= 0.9 |
-| **dbt-duckdb** | Transformation et documentation SQL | >= 1.6 |
-| **Streamlit** | Application web interactive | >= 1.28 |
-| **Python** | Orchestration et scripts d'ingestion | >= 3.10 |
-| **Plotly** | Visualisations interactives | >= 5.0 |
-| **Pandas** | Manipulation de donnees | >= 2.0 |
-| **GitHub** | Versioning et collaboration | - |
+| **DuckDB** | Base de donnees analytique locale | >=1.1.0, <2.0.0 |
+| **dbt-duckdb** | Transformation et documentation SQL | >=1.9.0, <2.0.0 |
+| **Streamlit** | Application web interactive | >=1.35.0, <2.0.0 |
+| **Python** | Orchestration et scripts d'ingestion | >=3.10 |
+| **Plotly** | Visualisations interactives | >=5.22.0 |
+| **Pandas** | Manipulation de donnees | >=2.2.3 |
+| **GitHub** | Versioning, collaboration, hebergement data | - |
 
 ---
 
@@ -104,13 +104,17 @@ airbnb-analytics-dbt/
 |       |-- full_moon_reviews.sql
 |       `-- schema.yml
 |-- seeds/
-|   `-- full_moon_dates.csv
+|   `-- seed_full_moon_dates.csv
 |-- scripts/
-|   `-- load_data.py
+|   `-- load_data.py           <- ingestion + telechargement auto
 |-- streamlit/
-|   `-- app.py
+|   `-- app.py                 <- dashboard Streamlit
+|-- docs/
+|   |-- DATA_HOSTING.md        <- configuration hebergement donnees
+|   `-- GUIDE_VSCODE.md        <- guide demarrage VS Code
 |-- dbt_project.yml
 |-- profiles.yml
+|-- Makefile
 `-- requirements.txt
 ```
 
@@ -163,8 +167,8 @@ airbnb-analytics-dbt/
 L'application propose **5 onglets** :
 
 ### 1. Accueil (Landing Page)
-- Hero section immersif (Berlin Fernsehturm, theme dark urbain)
-- KPIs cles anime au survol (Logements, Prix, Note, Avis, Superhosts...)
+- Hero section immersif avec palette terracotta / safran
+- KPIs cles animes au survol (Logements, Prix, Note, Avis, Superhosts...)
 - Diagramme du pipeline Bronze -> Silver -> Gold
 - Presentation du projet et des angles d'analyse
 
@@ -174,14 +178,14 @@ L'application propose **5 onglets** :
 - Top 10 hotes par nombre d'annonces
 
 ### 3. Analyse des prix
-- Distribution des prix (histogramme, capped a 500EUR)
+- Distribution des prix (histogramme, capped a 500 EUR)
 - Boxplot prix par type de logement
 - Quartiles (Min, Q1, Mediane, Q3, Max)
 - Correlation prix vs note (scatter)
 
 ### 4. Avis & Sentiment
 - KPIs sentiment (% positifs / neutres / negatifs)
-- Volume d'avis par mois (line chart, 60 derniers mois)
+- Volume d'avis par mois (line chart)
 - Repartition du sentiment (donut)
 - Sentiment moyen par type de logement
 - Echantillon des derniers avis
@@ -195,47 +199,66 @@ L'application propose **5 onglets** :
 
 ### Filtres globaux (sidebar)
 - Type de logement (multi-select)
-- Prix moyen EUR/nuit (slider)
+- Prix EUR/nuit (slider)
 - Pleine lune uniquement (checkbox)
 
 ---
 
 ## Installation et execution
 
+> Guide detaille pour VS Code : [`docs/GUIDE_VSCODE.md`](docs/GUIDE_VSCODE.md)
+
 ### Prerequis
 
+- Python >= 3.10
+- Git
+
+### 1. Cloner le repo
+
 ```bash
-python >= 3.10
-dbt-duckdb >= 1.8
-streamlit >= 1.35
+git clone https://github.com/zehair-louzza/airbnb-analytics-dbt.git
+cd airbnb-analytics-dbt
 ```
 
-### Donnees attendues
+### 2. Creer et activer l'environnement virtuel
 
-Placez les CSV bruts dans `data/raw/` :
-- `listings.csv` (colonnes : id, listing_url, name, room_type, minimum_nights, host_id, price, created_at, updated_at) — **versionne dans le repo**
-- `hosts.csv` (colonnes : id, name, is_superhost, created_at, updated_at) — **versionne dans le repo**
-- `reviews.csv` (colonnes : listing_id, date, reviewer_name, comments, sentiment) — **heberge cloud, telecharge auto**
+```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+```
 
-> **Note** : `reviews.csv` non compresse pese ~112 MB et depasse la limite de fichier GitHub (100 MB).
-> Il est donc heberge sur **GitHub Releases** et **telecharge automatiquement** par `scripts/load_data.py`
-> lors du premier `make ingest`. Voir [`docs/DATA_HOSTING.md`](docs/DATA_HOSTING.md) pour la configuration de l URL.
-
-Le seed `seeds/full_moon_dates.csv` contient les dates de pleine lune (2009-2030).
-
-### 1. Installer les dependances
+### 3. Installer les dependances
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Charger les donnees brutes dans DuckDB (couche Bronze raw)
+### 4. Telecharger et ingerer les donnees brutes
 
 ```bash
-python scripts/load_data.py --data-dir ./data/raw --db-path ./data/airbnb.duckdb
+python scripts/load_data.py
 ```
 
-### 3. Executer le pipeline dbt
+Tous les fichiers CSV (hosts, listings, reviews, full_moon_dates) sont telecharges automatiquement
+depuis GitHub Releases `v1.0-data` si absents localement.
+
+Pour surcharger l'URL de `reviews.csv` (S3, Hugging Face, Dropbox...) :
+
+```bash
+# Via argument CLI
+python scripts/load_data.py --reviews-url "https://example.com/reviews.csv"
+
+# Via variable d'environnement (Windows PowerShell)
+$env:REVIEWS_URL="https://example.com/reviews.csv"
+python scripts/load_data.py
+```
+
+Voir [`docs/DATA_HOSTING.md`](docs/DATA_HOSTING.md) pour la configuration complete.
+
+### 5. Executer le pipeline dbt
 
 ```bash
 dbt deps
@@ -244,20 +267,20 @@ dbt run
 dbt test
 ```
 
-### 4. Lancer le dashboard
+### 6. Lancer le dashboard
 
 ```bash
 streamlit run streamlit/app.py
 ```
 
+Ouvrir : http://localhost:8501
+
 Ou en une commande grace au Makefile :
 
 ```bash
-make all          # install + ingest + seed + run + test
-make dashboard    # lance Streamlit
+make all        # install + ingest + seed + run + test
+make dashboard  # lance Streamlit
 ```
-
-Ouvrir : http://localhost:8501
 
 ---
 

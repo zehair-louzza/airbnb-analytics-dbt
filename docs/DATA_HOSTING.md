@@ -2,75 +2,92 @@
 
 ## Pourquoi ?
 
-Le fichier **`reviews.csv`** pese ~112 MB et depasse la limite GitHub de 100 MB par fichier.
-Il est donc heberge en cloud (GitHub Releases) et **telecharge automatiquement** par le script
-d'ingestion (`scripts/load_data.py`) la premiere fois que vous lancez le pipeline.
+Les 4 fichiers CSV sont heberges sur **GitHub Releases `v1.0-data`** et telecharges automatiquement
+par `scripts/load_data.py` lors de la premiere execution. Aucune action manuelle n'est requise
+pour un usage standard.
 
 ```
-data/raw/listings.csv          ← versionne dans le repo
-data/raw/hosts.csv             ← versionne dans le repo
-data/raw/seed_full_moon_dates.csv ← versionne dans le repo
-data/raw/reviews.csv           ← TELECHARGE depuis GitHub Releases
+data/raw/hosts.csv                 <- telecharge depuis GitHub Releases v1.0-data
+data/raw/listings.csv              <- telecharge depuis GitHub Releases v1.0-data
+data/raw/reviews.csv               <- telecharge depuis GitHub Releases v1.0-data (~112 MB)
+seeds/seed_full_moon_dates.csv     <- telecharge depuis GitHub Releases v1.0-data
 ```
 
-## Etape 1 — Uploader reviews.csv sur GitHub Releases (a faire UNE seule fois)
+> `reviews.csv` pese ~112 MB et depasse la limite GitHub de 100 MB par fichier — raison principale
+> de l'hebergement sur Releases.
 
-1. Ouvrez votre repo : `https://github.com/<USER>/airbnb-analytics-dbt`
-2. Cliquez sur **"Releases"** dans la barre laterale droite (ou allez sur `/releases`)
-3. Cliquez sur **"Create a new release"** (ou **"Draft a new release"**)
-4. Configurez :
-   - **Tag** : `v1.0-data`
-   - **Release title** : `Donnees brutes Airbnb Berlin (v1.0)`
-   - **Description** : `Fichier reviews.csv (~112 MB) — Inside Airbnb Berlin, 2009-2021`
-5. **Glissez-deposez `reviews.csv`** dans la zone "Attach binaries by dropping them here..."
-6. Attendez la fin de l'upload (~30 sec - 2 min selon votre connexion)
-7. Cliquez sur **"Publish release"**
+---
 
-## Etape 2 — Recuperer l'URL de telechargement
+## Utilisation standard (aucune configuration)
 
-Sur la page de la release, faites un **clic droit > Copier l'adresse du lien** sur l'asset `reviews.csv`.
-
-L'URL aura cette forme :
-```
-https://github.com/<USER>/airbnb-analytics-dbt/releases/download/v1.0-data/reviews.csv
-```
-
-## Etape 3 — Configurer le script
-
-Trois facons (par ordre de priorite) :
-
-### Option A : Modifier la constante dans `scripts/load_data.py`
-```python
-REVIEWS_DOWNLOAD_URL = "https://github.com/<USER>/airbnb-analytics-dbt/releases/download/v1.0-data/reviews.csv"
-```
-
-### Option B : Variable d environnement
 ```bash
-export REVIEWS_URL="https://github.com/<USER>/airbnb-analytics-dbt/releases/download/v1.0-data/reviews.csv"
 python scripts/load_data.py
 ```
 
-### Option C : Argument CLI
-```bash
-python scripts/load_data.py --reviews-url "https://github.com/<USER>/airbnb-analytics-dbt/releases/download/v1.0-data/reviews.csv"
-```
-
-## Etape 4 — Lancer le pipeline
-
-```bash
-make all   # download (si absent) + ingest + seed + run + test
-```
-
 Le script :
-1. Verifie si `data/raw/reviews.csv` existe en local
-2. Si absent → telecharge depuis l URL configuree avec barre de progression
-3. Charge le fichier dans DuckDB
-4. Le pipeline dbt continue normalement
+1. Verifie si chaque fichier CSV existe localement
+2. Si absent → telecharge depuis GitHub Releases `v1.0-data` avec barre de progression
+3. Charge les fichiers dans DuckDB (couche Bronze)
+4. Au prochain appel, les fichiers presents → pas de retelechargement
 
-Au prochain `make all`, le fichier sera deja present → pas de retelechargement.
+---
 
-## Alternative — autres clouds
+## Surcharger l'URL de reviews.csv
 
-Le script accepte **n importe quelle URL HTTP/HTTPS publique** (S3, Hugging Face, Dropbox direct,
-Cloudflare R2, Google Drive avec lien direct, etc.). Il suffit de fournir l URL via `--reviews-url`
-ou la variable `REVIEWS_URL`.
+Si vous souhaitez utiliser une autre source pour `reviews.csv` (S3, Hugging Face, Dropbox,
+Cloudflare R2, Google Drive lien direct, etc.), trois options sont disponibles par ordre de priorite :
+
+### Option A — Argument CLI `--reviews-url` (recommande)
+
+```bash
+python scripts/load_data.py --reviews-url "https://example.com/reviews.csv"
+```
+
+### Option B — Variable d'environnement `REVIEWS_URL`
+
+```bash
+# macOS / Linux
+export REVIEWS_URL="https://example.com/reviews.csv"
+python scripts/load_data.py
+
+# Windows PowerShell
+$env:REVIEWS_URL="https://example.com/reviews.csv"
+python scripts/load_data.py
+```
+
+### Option C — Modifier la constante dans le script
+
+Editer `scripts/load_data.py` et changer la valeur de `RELEASE_BASE_URL` :
+
+```python
+RELEASE_BASE_URL = "https://votre-serveur.com/data"
+```
+
+---
+
+## Re-uploader les donnees sur GitHub Releases (admin uniquement)
+
+Cette section est utile uniquement si vous forkez le projet et devez re-heberger les CSV.
+
+1. Ouvrez le repo : `https://github.com/zehair-louzza/airbnb-analytics-dbt`
+2. Cliquez **Releases** → **Create a new release**
+3. Configurez :
+   - **Tag** : `v1.0-data`
+   - **Release title** : `Donnees brutes Airbnb Berlin (v1.0)`
+4. Glissez-deposez les 4 fichiers CSV dans la zone d'upload
+5. Cliquez **Publish release**
+
+---
+
+## Options avancees de load_data.py
+
+```bash
+python scripts/load_data.py --help
+
+# Arguments disponibles :
+#   --data-dir DIR       Dossier destination des CSV (default: ./data/raw)
+#   --db-path PATH       Chemin DuckDB (default: ./data/airbnb.duckdb)
+#   --reviews-url URL    URL de telechargement pour reviews.csv
+#   --no-download        Desactive le telechargement automatique
+#   --verify             Affiche un apercu des tables apres chargement
+```
