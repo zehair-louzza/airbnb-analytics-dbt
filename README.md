@@ -1,32 +1,38 @@
-# Airbnb Analytics Platform - Berlin
+# Airbnb Analytics Platform — Berlin
 
 > Pipeline de donnees end-to-end : **DuckDB + dbt + Streamlit**  
-> Projet MBA ESG - Management Operationnel - Big Data & AI (2026)
+> Projet MBA ESG — Big Data & IA | Management Operationnel 2026
+
+**Auteur :** LOUZZA Zehair  
+**Livrable :** `MBAESG_EVALUATION_MANAGEMENT_OPERATIONNEL_2026`  
+**Contact evaluation :** axel@logbrain.fr
 
 ---
 
 ## Table des matieres
 
-- [Apercu du projet](#apercu-du-projet)
+- [Vue d'ensemble](#vue-densemble)
 - [Architecture Medallion](#architecture-medallion)
 - [Stack technique](#stack-technique)
 - [Structure du projet](#structure-du-projet)
 - [Modeles dbt](#modeles-dbt)
 - [KPIs et metriques metier](#kpis-et-metriques-metier)
 - [Dashboard Streamlit](#dashboard-streamlit)
-- [Installation et execution](#installation-et-execution)
-- [Livrable](#livrable)
+- [Resultats dbt](#resultats-dbt)
+- [Installation — Guide VS Code](#installation--guide-vs-code)
+- [Commandes de reference](#commandes-de-reference)
+- [Problemes frequents](#problemes-frequents)
 
 ---
 
-## Apercu du projet
+## Vue d'ensemble
 
-Ce projet realise une **plateforme analytique complete** sur les annonces Airbnb de Berlin (17 499 logements). Il couvre l'integralite du cycle de vie de la donnee :
+Plateforme analytique complete sur les annonces Airbnb de Berlin (17 499 logements). Elle couvre l'integralite du cycle de vie de la donnee :
 
 1. **Ingestion** des donnees brutes (CSV Inside Airbnb) — telechargement automatique depuis GitHub Releases
 2. **Transformation** en couches Bronze / Silver / Gold via dbt
 3. **Stockage** analytique dans DuckDB (base locale haute performance)
-4. **Visualisation** interactive via une application Streamlit
+4. **Visualisation** interactive via une application Streamlit multi-onglets
 
 L'analyse porte sur des **KPIs metier avances** incluant le taux d'occupation, le ratio prix/qualite, les multi-annonces par hote, et une analyse originale de l'effet de la **Pleine Lune** sur les avis clients.
 
@@ -38,33 +44,36 @@ L'analyse porte sur des **KPIs metier avances** incluant le taux d'occupation, l
 Source CSV (Inside Airbnb)
         |
         v
-+------------------+
-|   BRONZE Layer   |  Ingestion brute
-|  bronze_listings |  (DuckDB schema: main_bronze)
-+------------------+
++----------------------+
+|     BRONZE Layer     |  Ingestion brute (DuckDB schema: main_bronze)
+|  bronze_listings     |
+|  bronze_hosts        |
+|  bronze_reviews      |
+|  bronze_full_moon_dates |
++----------------------+
         |
         v
-+------------------+
-|   SILVER Layer   |  Nettoyage, typage, enrichissement
-| silver_listings  |
-| silver_reviews   |
-| silver_hosts     |
-| silver_full_moon_dates |
-+------------------+
++----------------------+
+|     SILVER Layer     |  Nettoyage, typage, enrichissement
+|  silver_listings     |
+|  silver_reviews      |
+|  silver_hosts        |
+|  silver_full_moon_dates |
++----------------------+
         |
         v
-+------------------+
-|    GOLD Layer    |  Agregations metier, KPIs finaux
-|  dim_listings    |
-|  dim_hosts       |
-|  fact_reviews    |
-| full_moon_reviews|
-+------------------+
++----------------------+
+|      GOLD Layer      |  Agregations metier, KPIs finaux
+|  dim_listings        |
+|  dim_hosts           |
+|  fact_reviews        |
+|  full_moon_reviews   |
++----------------------+
         |
         v
-+------------------+
-| Streamlit App    |  Dashboard interactif
-+------------------+
++----------------------+
+|   Streamlit App      |  Dashboard interactif — http://localhost:8501
++----------------------+
 ```
 
 ---
@@ -79,7 +88,7 @@ Source CSV (Inside Airbnb)
 | **Python** | Orchestration et scripts d'ingestion | >=3.10 |
 | **Plotly** | Visualisations interactives | >=5.22.0 |
 | **Pandas** | Manipulation de donnees | >=2.2.3 |
-| **GitHub** | Versioning, collaboration, hebergement data | - |
+| **GitHub** | Versioning, collaboration, hebergement data | — |
 
 ---
 
@@ -110,8 +119,9 @@ airbnb-analytics-dbt/
 |-- streamlit/
 |   `-- app.py                 <- dashboard Streamlit
 |-- docs/
-|   |-- DATA_HOSTING.md        <- configuration hebergement donnees
-|   `-- GUIDE_VSCODE.md        <- guide demarrage VS Code
+|   `-- DATA_HOSTING.md        <- configuration hebergement donnees
+|-- .vscode/
+|   `-- settings.json          <- interpreteur Python VS Code
 |-- dbt_project.yml
 |-- profiles.yml
 |-- Makefile
@@ -122,26 +132,35 @@ airbnb-analytics-dbt/
 
 ## Modeles dbt
 
-### Bronze - Ingestion brute
-- **bronze_listings** : Chargement des annonces (id, listing_url, name, room_type, minimum_nights, host_id, price, created_at, updated_at)
-- **bronze_hosts** : Chargement des hotes
-- **bronze_reviews** : Chargement des avis avec sentiment pre-classifie
-- **bronze_full_moon_dates** : Chargement du seed des dates de pleine lune
+### Bronze — Ingestion brute
 
-### Silver - Nettoyage et standardisation
-- **silver_listings** : Nettoyage du prix (retire `$`, cast en DOUBLE), cap minimum_nights a 30
-- **silver_reviews** : Standardisation dates, derivation `sentiment_score` (-1 / 0 / +1)
-- **silver_hosts** : Cast types, flag `is_superhost` boolean
-- **silver_full_moon_dates** : Calcul `full_moon_date_plus_1` (J+1)
+| Modele | Description |
+|---|---|
+| `bronze_listings` | Annonces brutes (id, listing_url, name, room_type, minimum_nights, host_id, price) |
+| `bronze_hosts` | Hotes bruts |
+| `bronze_reviews` | Avis avec sentiment pre-classifie |
+| `bronze_full_moon_dates` | Dates de pleine lune depuis le seed |
 
-### Gold - Agregations metier
-- **dim_listings** : Listings enrichis avec aggregations reviews (nb_avis, sentiment moyen, note proxy /5)
-- **dim_hosts** : Hotes enrichis (total_listings, avg_price, is_multi_host)
-- **fact_reviews** : Avis joints aux listings + hosts + sentiment
-- **full_moon_reviews** : Avis emis dans la fenetre J / J+1 d'une pleine lune
+### Silver — Nettoyage et standardisation
 
-> **Note** : la note moyenne `review_scores_rating` est derivee du sentiment moyen
-> (mapping `[-1, +1]` -> `[1, 5]`) car la version raw des CSV ne contient pas la note Airbnb d'origine.
+| Modele | Transformations cles |
+|---|---|
+| `silver_listings` | Nettoyage prix (retire `$`, cast DOUBLE), cap minimum_nights a 30 |
+| `silver_reviews` | Standardisation dates, derivation `sentiment_score` (-1 / 0 / +1) |
+| `silver_hosts` | Cast types, flag `is_superhost` boolean |
+| `silver_full_moon_dates` | Calcul `full_moon_date_plus_1` (J+1) |
+
+### Gold — Agregations metier
+
+| Modele | Description |
+|---|---|
+| `dim_listings` | Listings enrichis — nb_avis, sentiment moyen, note proxy /5 |
+| `dim_hosts` | Hotes enrichis — total_listings, avg_price, is_multi_host |
+| `fact_reviews` | Avis joints aux listings + hosts + sentiment |
+| `full_moon_reviews` | Avis emis dans la fenetre J / J+1 d'une pleine lune |
+
+> **Note** : `review_scores_rating` est derivee du sentiment moyen (mapping `[-1, +1]` -> `[1, 5]`)
+> car les CSV raw ne contiennent pas la note Airbnb d'origine.
 
 ---
 
@@ -164,36 +183,29 @@ airbnb-analytics-dbt/
 
 ## Dashboard Streamlit
 
-L'application propose **5 onglets** :
+L'application propose **5 onglets** accessibles sur `http://localhost:8501` :
 
-### 1. Accueil (Landing Page)
-- Hero section immersif avec palette terracotta / safran
-- KPIs cles animes au survol (Logements, Prix, Note, Avis, Superhosts...)
-- Diagramme du pipeline Bronze -> Silver -> Gold
-- Presentation du projet et des angles d'analyse
-
-### 2. Vue d'ensemble
+### 1. Vue d'ensemble
 - Repartition par type de logement (bar + donut chart)
 - Statistiques par type (prix, note, nb avis, nuits min)
 - Top 10 hotes par nombre d'annonces
 
-### 3. Analyse des prix
+### 2. Analyse des prix
 - Distribution des prix (histogramme, capped a 500 EUR)
 - Boxplot prix par type de logement
 - Quartiles (Min, Q1, Mediane, Q3, Max)
 - Correlation prix vs note (scatter)
 
-### 4. Avis & Sentiment
+### 3. Avis & Sentiment
 - KPIs sentiment (% positifs / neutres / negatifs)
 - Volume d'avis par mois (line chart)
 - Repartition du sentiment (donut)
 - Sentiment moyen par type de logement
 - Echantillon des derniers avis
 
-### 5. Pleine Lune
+### 4. Pleine Lune
 - KPIs pleine lune (volume, sentiment compare)
 - Avis pleine lune par type de logement
-- Sentiment des avis pleine lune
 - Evolution annuelle des avis lunaires
 - Echantillon des avis pleine lune
 
@@ -204,102 +216,164 @@ L'application propose **5 onglets** :
 
 ---
 
-## Installation et execution
+## Resultats dbt
 
-> Guide detaille pour VS Code : [`docs/GUIDE_VSCODE.md`](docs/GUIDE_VSCODE.md)
+| Commande | Resultat |
+|---|---|
+| `dbt seed` | ✅ PASS (4 seeds) |
+| `dbt run` | ✅ PASS (12 modeles) |
+| `dbt test` | ✅ PASS (33 tests) |
+
+Tests executes :
+- `not_null` sur toutes les cles primaires
+- `unique` sur host_id, listing_id, review_id
+- `accepted_values` sur room_type
+- Integrite referentielle Bronze → Silver → Gold
+
+---
+
+## Installation — Guide VS Code
 
 ### Prerequis
 
-- Python >= 3.10
-- Git
+- Python 3.10 → 3.13 : [python.org/downloads](https://www.python.org/downloads/)
+- Git : [git-scm.com](https://git-scm.com/)
+- VS Code avec l'extension **Python** (Microsoft)
 
-### 1. Cloner le repo
+### Etape 1 — Cloner le projet
 
-```bash
+```powershell
 git clone https://github.com/zehair-louzza/airbnb-analytics-dbt.git
 cd airbnb-analytics-dbt
 ```
 
-### 2. Creer et activer l'environnement virtuel
+Puis dans VS Code : **File → Open Folder** → selectionner le dossier `airbnb-analytics-dbt`.
 
-```bash
+> ⚠️ Ne pas telecharger en ZIP — Git est obligatoire pour les mises a jour.
+
+### Etape 2 — Creer l'environnement virtuel
+
+```powershell
 python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
+.venv\Scripts\activate          # Windows PowerShell
+# source .venv/bin/activate     # macOS / Linux
 ```
 
-### 3. Installer les dependances
+### Etape 3 — Selectionner l'interpreteur Python dans VS Code
 
-```bash
+> ⚠️ Obligatoire pour eviter les faux avertissements Pylance (`reportMissingImports`)
+
+1. `Ctrl+Shift+P` → `Python: Select Interpreter`
+2. Selectionner **`.venv`** : `Python 3.x.x ('.venv': venv)  .\.venv\Scripts\python.exe`
+
+Ou creer `.vscode/settings.json` pour que VS Code retienne le choix automatiquement :
+
+```json
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+  "python.terminal.activateEnvironment": true
+}
+```
+
+### Etape 4 — Installer les dependances
+
+```powershell
 pip install -r requirements.txt
 ```
 
-### 4. Telecharger et ingerer les donnees brutes
+### Etape 5 — Telecharger et ingerer les donnees
 
-```bash
+```powershell
 python scripts/load_data.py
 ```
 
-Tous les fichiers CSV (hosts, listings, reviews, full_moon_dates) sont telecharges automatiquement
-depuis GitHub Releases `v1.0-data` si absents localement.
+Le script telecharge automatiquement les 4 CSV depuis GitHub Releases `v1.0-data` si absents :
 
-Pour surcharger l'URL de `reviews.csv` (S3, Hugging Face, Dropbox...) :
+| Fichier | Taille | Destination |
+|---|---|---|
+| `hosts.csv` | ~800 KB | `data/raw/hosts.csv` |
+| `listings.csv` | ~2.8 MB | `data/raw/listings.csv` |
+| `reviews.csv` | ~112 MB | `data/raw/reviews.csv` |
+| `seed_full_moon_dates.csv` | ~3 KB | `seeds/seed_full_moon_dates.csv` |
 
-```bash
-# Via argument CLI
+Pour surcharger l'URL de `reviews.csv` :
+
+```powershell
 python scripts/load_data.py --reviews-url "https://example.com/reviews.csv"
-
-# Via variable d'environnement (Windows PowerShell)
-$env:REVIEWS_URL="https://example.com/reviews.csv"
-python scripts/load_data.py
 ```
 
 Voir [`docs/DATA_HOSTING.md`](docs/DATA_HOSTING.md) pour la configuration complete.
 
-### 5. Executer le pipeline dbt
+### Etape 6 — Construire les modeles dbt
 
-```bash
+```powershell
 dbt deps
 dbt seed
 dbt run
-dbt test
+dbt test       # optionnel
 ```
 
-### 6. Lancer le dashboard
+Resultat attendu : tous les modeles en vert ✅ `Completed successfully`.
 
-```bash
+### Etape 7 — Lancer le dashboard
+
+```powershell
 streamlit run streamlit/app.py
 ```
 
-Ouvrir : http://localhost:8501
+Ouvrir : **http://localhost:8501**
 
-Ou en une commande grace au Makefile :
+### Raccourci Makefile
 
-```bash
-make all        # install + ingest + seed + run + test
-make dashboard  # lance Streamlit
+```powershell
+make all        # install + ingest + dbt seed + run + test
+make dashboard  # lance Streamlit uniquement
+```
+
+### Les fois suivantes
+
+```powershell
+.venv\Scripts\activate
+streamlit run streamlit/app.py
 ```
 
 ---
 
-## Livrable
+## Commandes de reference
 
-Soumis sous l'intitule **MBAESG_EVALUATION_MANAGEMENT_OPERATIONNEL_2026**  
-a l'adresse : axel@logbrain.fr
+```powershell
+# Mise a jour du projet
+git pull origin main
+pip install -r requirements.txt
+
+# Push apres modifications
+git add .
+git commit -m "description des changements"
+git pull origin main --rebase
+git push origin main
+
+# Re-ingestion complete
+Remove-Item .\data\raw\listings.csv
+python scripts/load_data.py
+dbt seed && dbt run
+```
 
 ---
 
-## Auteur
+## Problemes frequents
 
-**Auteur : Zehair Louzza**
-
-Projet realise dans le cadre du **MBA ESG Big Data & AI** - Promotion 2026  
-Cours : Management Operationnel
+| Symptome | Cause | Solution |
+|---|---|---|
+| `reportMissingImports: duckdb` dans VS Code | Mauvais interpreteur Python | `Ctrl+Shift+P` → `Python: Select Interpreter` → choisir `.venv` |
+| `SyntaxError: unterminated string literal` | Ancien fichier local (ZIP) | Remplacer le fichier par la version GitHub |
+| KPIs affichent `<NA>` dans Streamlit | `listings.csv` incomplet (1 000 lignes) | `Remove-Item .\data\raw\listings.csv` puis `python scripts/load_data.py` |
+| `No options to select` dans le filtre Quartier | Colonne `neighbourhood` absente | Verifier colonnes : `Get-Content .\data\raw\listings.csv \| Select-Object -First 1` |
+| `git push` rejected (fetch first) | Commits distants non integres | `git pull origin main --rebase` puis `git push origin main` |
+| `dbt run` echoue | DuckDB vide | Lancer `python scripts/load_data.py` d'abord |
 
 ---
 
 ## Licence
 
-MIT License - MBA ESG 2026
+MIT License — MBA ESG Big Data & AI 2026  
+**Auteur : Zehair Louzza**
