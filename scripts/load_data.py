@@ -5,6 +5,8 @@ Etape 1 du pipeline : chargement couche Bronze
 Usage:
     python scripts/load_data.py
     python scripts/load_data.py --data-dir ./data/raw --db-path ./data/airbnb.duckdb --verify
+    python scripts/load_data.py --reviews-url "https://example.com/reviews.csv"
+    REVIEWS_URL="https://example.com/reviews.csv" python scripts/load_data.py
 
 Tous les fichiers CSV sont telecharges automatiquement depuis GitHub Releases v1.0-data
 si absents dans leurs dossiers respectifs :
@@ -33,7 +35,7 @@ RELEASE_BASE_URL = (
     "/releases/download/v1.0-data"
 )
 
-# (filename, destination relative to project root)
+# (filename -> destination relative to project root, default url)
 RELEASE_FILES = {
     "hosts.csv":                 ("data/raw/hosts.csv",             f"{RELEASE_BASE_URL}/hosts.csv"),
     "listings.csv":              ("data/raw/listings.csv",          f"{RELEASE_BASE_URL}/listings.csv"),
@@ -42,27 +44,37 @@ RELEASE_FILES = {
 }
 
 
-def ensure_data_files(data_dir: str) -> None:
+def ensure_data_files(data_dir: str, reviews_url: str = None) -> None:
     """
     Verifie la presence de chaque fichier a son emplacement attendu.
     Telecharge automatiquement depuis GitHub Releases v1.0-data si absent.
-    Les chemins de destination sont relatifs au dossier de travail courant,
-    sauf pour les 3 CSV Airbnb qui vont dans data_dir.
+    Pour reviews.csv, l'URL peut etre surchargee via --reviews-url ou REVIEWS_URL.
     """
-    for filename, (default_dest, url) in RELEASE_FILES.items():
+    # Resolve reviews URL override: CLI arg > env var > default
+    resolved_reviews_url = (
+        reviews_url
+        or os.environ.get("REVIEWS_URL")
+        or RELEASE_FILES["reviews.csv"][1]
+    )
+    if resolved_reviews_url != RELEASE_FILES["reviews.csv"][1]:
+        logger.info(f"reviews.csv : URL surchargee -> {resolved_reviews_url}")
+
+    for filename, (default_dest, default_url) in RELEASE_FILES.items():
         # Pour les 3 CSV Airbnb, on respecte --data-dir ; pour le seed, chemin fixe
         if filename == "seed_full_moon_dates.csv":
             file_path = Path(default_dest)
         else:
             file_path = Path(data_dir) / filename
 
+        # Determine final URL (override only applies to reviews.csv)
+        url = resolved_reviews_url if filename == "reviews.csv" else default_url
+
         if file_path.exists():
             size_kb = file_path.stat().st_size / 1024
             logger.info(f"{filename} trouve ({size_kb:.0f} KB) : {file_path}")
             continue
 
-        logger.warning(f"{filename} absent - telechargement depuis GitHub Releases...")
-        logger.info(f"  URL : {url}")
+        logger.warning(f"{filename} absent - telechargement depuis : {url}")
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         def _progress(block_num, block_size, total_size, fname=filename):
@@ -121,7 +133,7 @@ def load_listings(conn: duckdb.DuckDBPyConnection, data_dir: str) -> int:
         SELECT * FROM read_csv_auto(?, header=True)
     """, [listings_path])
 
-    count = conn.execute("SELECT COUNT(*) FROM raw_listings\").fetchone()[0]
+    count = conn.execute("SELECT COUNT(*) FROM raw_listings").fetchone()[0]
     logger.info(f"raw_listings charge : {count:,} lignes")
     return count
 
@@ -184,6 +196,16 @@ def main():
         action="store_true",
         help="Desactive le telechargement automatique des fichiers manquants"
     )
+    parser.add_argument(
+        "--reviews-url",
+        default=None,
+        help=(
+            "URL de telechargement pour reviews.csv "
+            "(surcharge REVIEWS_URL env var et l'URL par defaut). "
+            "Accepte n'importe quelle URL HTTP/HTTPS publique "
+            "(GitHub Releases, S3, Hugging Face, Dropbox, etc.)"
+        )
+    )
     args = parser.parse_args()
 
     logger.info("=" * 50)
@@ -194,7 +216,7 @@ def main():
 
     # Auto-download des fichiers manquants (sauf si --no-download)
     if not args.no_download:
-        ensure_data_files(args.data_dir)
+        ensure_data_files(args.data_dir, reviews_url=args.reviews_url)
 
     # Connexion DuckDB
     conn = create_database(args.db_path)
