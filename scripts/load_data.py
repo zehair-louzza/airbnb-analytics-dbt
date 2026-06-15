@@ -1,28 +1,69 @@
 """
-Script d ingestion des donnees Airbnb dans DuckDB
+Script d'ingestion des donnees Airbnb dans DuckDB
 Etape 1 du pipeline : chargement couche Bronze
 
 Usage:
-    python scripts/load_data.py --data-dir ./data/raw
+    python scripts/load_data.py
+    python scripts/load_data.py --data-dir ./data/raw --db-path ./data/airbnb.duckdb --verify
 
 Les fichiers CSV attendus dans data/raw/ :
-    - hosts.csv
-    - listings.csv
-    - reviews.csv
+    - hosts.csv      (commit / upload manuel)
+    - listings.csv   (commit / upload manuel)
+    - reviews.csv    (telecharge automatiquement depuis GitHub Releases si absent)
 """
 
 import duckdb
 import os
 import argparse
 import logging
+import urllib.request
 from pathlib import Path
 
-# Configuration du logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+# URL de telechargement de reviews.csv depuis GitHub Releases
+REVIEWS_RELEASE_URL = (
+    "https://github.com/zehair-louzza/airbnb-analytics-dbt"
+    "/releases/download/v1.0-data/reviews.csv"
+)
+
+
+def ensure_reviews_csv(data_dir: str) -> None:
+    """
+    Verifie si reviews.csv est present dans data_dir.
+    Si absent, le telecharge automatiquement depuis GitHub Releases v1.0-data.
+    """
+    reviews_path = Path(data_dir) / "reviews.csv"
+    if reviews_path.exists():
+        logger.info(f"reviews.csv trouve : {reviews_path}")
+        return
+
+    logger.warning(f"reviews.csv absent — telechargement depuis GitHub Releases...")
+    logger.info(f"URL : {REVIEWS_RELEASE_URL}")
+    logger.info("Fichier volumineux (~111 MB), patience...")
+
+    reviews_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def _progress(block_num, block_size, total_size):
+        downloaded = block_num * block_size
+        if total_size > 0:
+            pct = min(downloaded / total_size * 100, 100)
+            mb = downloaded / 1_048_576
+            print(f"  Progression : {pct:.1f}%  ({mb:.1f} MB)", end="\r")
+
+    try:
+        urllib.request.urlretrieve(REVIEWS_RELEASE_URL, reviews_path, _progress)
+        print()  # newline apres la progression
+        logger.info(f"reviews.csv telecharge avec succes : {reviews_path}")
+    except Exception as e:
+        logger.error(f"Echec du telechargement : {e}")
+        logger.error("Telechargez manuellement depuis :")
+        logger.error(f"  {REVIEWS_RELEASE_URL}")
+        raise
 
 
 def create_database(db_path: str) -> duckdb.DuckDBPyConnection:
@@ -42,8 +83,7 @@ def load_hosts(conn: duckdb.DuckDBPyConnection, data_dir: str) -> int:
 
     conn.execute("""
         CREATE OR REPLACE TABLE raw_hosts AS
-        SELECT *
-        FROM read_csv_auto(?, header=True)
+        SELECT * FROM read_csv_auto(?, header=True)
     """, [hosts_path])
 
     count = conn.execute("SELECT COUNT(*) FROM raw_hosts").fetchone()[0]
@@ -60,8 +100,7 @@ def load_listings(conn: duckdb.DuckDBPyConnection, data_dir: str) -> int:
 
     conn.execute("""
         CREATE OR REPLACE TABLE raw_listings AS
-        SELECT *
-        FROM read_csv_auto(?, header=True)
+        SELECT * FROM read_csv_auto(?, header=True)
     """, [listings_path])
 
     count = conn.execute("SELECT COUNT(*) FROM raw_listings").fetchone()[0]
@@ -78,8 +117,7 @@ def load_reviews(conn: duckdb.DuckDBPyConnection, data_dir: str) -> int:
 
     conn.execute("""
         CREATE OR REPLACE TABLE raw_reviews AS
-        SELECT *
-        FROM read_csv_auto(?, header=True, ignore_errors=True)
+        SELECT * FROM read_csv_auto(?, header=True, ignore_errors=True)
     """, [reviews_path])
 
     count = conn.execute("SELECT COUNT(*) FROM raw_reviews").fetchone()[0]
@@ -98,7 +136,7 @@ def verify_tables(conn: duckdb.DuckDBPyConnection) -> None:
 
 
 def show_sample(conn: duckdb.DuckDBPyConnection, table: str, n: int = 3) -> None:
-    """Affiche un apercu d une table."""
+    """Affiche un apercu d'une table."""
     logger.info(f"--- Apercu de {table} ({n} lignes) ---")
     df = conn.execute(f"SELECT * FROM {table} LIMIT {n}").fetchdf()
     print(df.to_string())
@@ -123,6 +161,11 @@ def main():
         action="store_true",
         help="Affiche un apercu des tables apres chargement"
     )
+    parser.add_argument(
+        "--no-download",
+        action="store_true",
+        help="Desactive le telechargement automatique de reviews.csv"
+    )
     args = parser.parse_args()
 
     logger.info("=" * 50)
@@ -130,6 +173,10 @@ def main():
     logger.info("=" * 50)
     logger.info(f"Source     : {args.data_dir}")
     logger.info(f"Base DuckDB: {args.db_path}")
+
+    # Auto-download reviews.csv si absent (sauf si --no-download)
+    if not args.no_download:
+        ensure_reviews_csv(args.data_dir)
 
     # Connexion
     conn = create_database(args.db_path)
