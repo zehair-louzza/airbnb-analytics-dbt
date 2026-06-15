@@ -6,10 +6,11 @@ Usage:
     python scripts/load_data.py
     python scripts/load_data.py --data-dir ./data/raw --db-path ./data/airbnb.duckdb --verify
 
-Les fichiers CSV attendus dans data/raw/ :
-    - hosts.csv      (commit / upload manuel)
-    - listings.csv   (commit / upload manuel)
-    - reviews.csv    (telecharge automatiquement depuis GitHub Releases si absent)
+Tous les fichiers CSV sont telecharges automatiquement depuis GitHub Releases v1.0-data
+si absents dans data/raw/ :
+    - hosts.csv           (~800 KB)
+    - listings.csv        (~2.8 MB)
+    - reviews.csv         (~111 MB)
 """
 
 import duckdb
@@ -25,45 +26,54 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# URL de telechargement de reviews.csv depuis GitHub Releases
-REVIEWS_RELEASE_URL = (
+# URLs de telechargement depuis GitHub Releases v1.0-data
+RELEASE_BASE_URL = (
     "https://github.com/zehair-louzza/airbnb-analytics-dbt"
-    "/releases/download/v1.0-data/reviews.csv"
+    "/releases/download/v1.0-data"
 )
 
+RELEASE_FILES = {
+    "hosts.csv":    f"{RELEASE_BASE_URL}/hosts.csv",
+    "listings.csv": f"{RELEASE_BASE_URL}/listings.csv",
+    "reviews.csv":  f"{RELEASE_BASE_URL}/reviews.csv",
+}
 
-def ensure_reviews_csv(data_dir: str) -> None:
+
+def ensure_data_files(data_dir: str) -> None:
     """
-    Verifie si reviews.csv est present dans data_dir.
-    Si absent, le telecharge automatiquement depuis GitHub Releases v1.0-data.
+    Verifie la presence de chaque CSV dans data_dir.
+    Telecharge automatiquement depuis GitHub Releases v1.0-data si absent.
     """
-    reviews_path = Path(data_dir) / "reviews.csv"
-    if reviews_path.exists():
-        logger.info(f"reviews.csv trouve : {reviews_path}")
-        return
+    data_path = Path(data_dir)
+    data_path.mkdir(parents=True, exist_ok=True)
 
-    logger.warning(f"reviews.csv absent — telechargement depuis GitHub Releases...")
-    logger.info(f"URL : {REVIEWS_RELEASE_URL}")
-    logger.info("Fichier volumineux (~111 MB), patience...")
+    for filename, url in RELEASE_FILES.items():
+        file_path = data_path / filename
+        if file_path.exists():
+            size_mb = file_path.stat().st_size / 1_048_576
+            logger.info(f"{filename} trouve ({size_mb:.1f} MB) : {file_path}")
+            continue
 
-    reviews_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.warning(f"{filename} absent - telechargement depuis GitHub Releases...")
+        logger.info(f"  URL : {url}")
 
-    def _progress(block_num, block_size, total_size):
-        downloaded = block_num * block_size
-        if total_size > 0:
-            pct = min(downloaded / total_size * 100, 100)
-            mb = downloaded / 1_048_576
-            print(f"  Progression : {pct:.1f}%  ({mb:.1f} MB)", end="\r")
+        def _progress(block_num, block_size, total_size, fname=filename):
+            downloaded = block_num * block_size
+            if total_size > 0:
+                pct = min(downloaded / total_size * 100, 100)
+                mb = downloaded / 1_048_576
+                total_mb = total_size / 1_048_576
+                print(f"  [{fname}] {pct:.1f}%  {mb:.1f}/{total_mb:.1f} MB", end="\r")
 
-    try:
-        urllib.request.urlretrieve(REVIEWS_RELEASE_URL, reviews_path, _progress)
-        print()  # newline apres la progression
-        logger.info(f"reviews.csv telecharge avec succes : {reviews_path}")
-    except Exception as e:
-        logger.error(f"Echec du telechargement : {e}")
-        logger.error("Telechargez manuellement depuis :")
-        logger.error(f"  {REVIEWS_RELEASE_URL}")
-        raise
+        try:
+            urllib.request.urlretrieve(url, file_path, _progress)
+            print()  # newline apres la progression
+            size_mb = file_path.stat().st_size / 1_048_576
+            logger.info(f"{filename} telecharge avec succes ({size_mb:.1f} MB)")
+        except Exception as e:
+            logger.error(f"Echec du telechargement de {filename} : {e}")
+            logger.error(f"Telechargez manuellement depuis : {url}")
+            raise
 
 
 def create_database(db_path: str) -> duckdb.DuckDBPyConnection:
@@ -164,7 +174,7 @@ def main():
     parser.add_argument(
         "--no-download",
         action="store_true",
-        help="Desactive le telechargement automatique de reviews.csv"
+        help="Desactive le telechargement automatique des CSV manquants"
     )
     args = parser.parse_args()
 
@@ -174,14 +184,14 @@ def main():
     logger.info(f"Source     : {args.data_dir}")
     logger.info(f"Base DuckDB: {args.db_path}")
 
-    # Auto-download reviews.csv si absent (sauf si --no-download)
+    # Auto-download des CSV manquants (sauf si --no-download)
     if not args.no_download:
-        ensure_reviews_csv(args.data_dir)
+        ensure_data_files(args.data_dir)
 
-    # Connexion
+    # Connexion DuckDB
     conn = create_database(args.db_path)
 
-    # Chargement
+    # Chargement des 3 tables Bronze
     total = 0
     total += load_hosts(conn, args.data_dir)
     total += load_listings(conn, args.data_dir)
